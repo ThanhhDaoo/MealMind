@@ -1,5 +1,6 @@
 package com.mealapp.controller;
 
+import com.mealapp.dto.MealPlanGenerationRequest;
 import com.mealapp.model.MealPlan;
 import com.mealapp.service.MealPlanService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/meal-plans")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class MealPlanController {
     
     @Autowired
@@ -81,33 +82,4 @@ public class MealPlanController {
         Page<MealPlan> history = mealPlanService.getMealPlanHistory(userId, pageable);
         return ResponseEntity.ok(history);
     }
-}
-
-// DTO for meal plan generation request
-class MealPlanGenerationRequest {
-    private LocalDate date;
-    private MealPlanPreferences preferences;
-    
-    // Getters and setters
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-    
-    public MealPlanPreferences getPreferences() { return preferences; }
-    public void setPreferences(MealPlanPreferences preferences) { this.preferences = preferences; }
-}
-
-class MealPlanPreferences {
-    private Integer calories;
-    private String diet;
-    private List<String> allergies;
-    
-    // Getters and setters
-    public Integer getCalories() { return calories; }
-    public void setCalories(Integer calories) { this.calories = calories; }
-    
-    public String getDiet() { return diet; }
-    public void setDiet(String diet) { this.diet = diet; }
-    
-    public List<String> getAllergies() { return allergies; }
-    public void setAllergies(List<String> allergies) { this.allergies = allergies; }
 }

@@ -1,11 +1,8 @@
 package com.mealapp.controller;
 
-import com.mealapp.model.Food;
+import com.mealapp.dto.FoodDTO;
 import com.mealapp.service.FoodService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,76 +10,52 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/foods")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class FoodController {
-    
-    @Autowired
-    private FoodService foodService;
-    
-    // Get all foods with optional filters
+
+    private final FoodService foodService;
+
     @GetMapping
-    public ResponseEntity<Page<Food>> getAllFoods(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String search,
-            @RequestParam(required = false) Integer maxCalories,
-            @RequestParam(required = false) Integer maxPrepTime,
-            @RequestParam(required = false) String difficulty) {
-        
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Food> foods = foodService.getAllFoods(category, search, maxCalories, maxPrepTime, difficulty, pageable);
-        return ResponseEntity.ok(foods);
+    public ResponseEntity<List<FoodDTO>> getAllFoods() {
+        return ResponseEntity.ok(foodService.getAllFoods());
     }
-    
-    // Get featured foods
-    @GetMapping("/featured")
-    public ResponseEntity<List<Food>> getFeaturedFoods() {
-        List<Food> featuredFoods = foodService.getFeaturedFoods();
-        return ResponseEntity.ok(featuredFoods);
-    }
-    
-    // Get food by ID
+
     @GetMapping("/{id}")
-    public ResponseEntity<Food> getFoodById(@PathVariable Long id) {
-        Food food = foodService.getFoodById(id);
-        return ResponseEntity.ok(food);
+    public ResponseEntity<FoodDTO> getFoodById(@PathVariable Long id) {
+        return ResponseEntity.ok(foodService.getFoodById(id));
     }
-    
-    // Search foods
-    @GetMapping("/search")
-    public ResponseEntity<Page<Food>> searchFoods(
-            @RequestParam String q,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-        
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Food> foods = foodService.searchFoods(q, pageable);
-        return ResponseEntity.ok(foods);
-    }
-    
-    // Get foods by category
+
     @GetMapping("/category/{category}")
-    public ResponseEntity<List<Food>> getFoodsByCategory(@PathVariable String category) {
-        List<Food> foods = foodService.getFoodsByCategory(category);
-        return ResponseEntity.ok(foods);
+    public ResponseEntity<List<FoodDTO>> getFoodsByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(foodService.getFoodsByCategory(category));
     }
-    
-    // Create new food (admin only)
+
+    @GetMapping("/search")
+    public ResponseEntity<List<FoodDTO>> searchFoods(@RequestParam String keyword) {
+        return ResponseEntity.ok(foodService.searchFoods(keyword));
+    }
+
+    @GetMapping("/top-rated")
+    public ResponseEntity<List<FoodDTO>> getTopRatedFoods() {
+        return ResponseEntity.ok(foodService.getTopRatedFoods());
+    }
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<String>> getAllCategories() {
+        return ResponseEntity.ok(foodService.getAllCategories());
+    }
+
     @PostMapping
-    public ResponseEntity<Food> createFood(@RequestBody Food food) {
-        Food createdFood = foodService.createFood(food);
-        return ResponseEntity.ok(createdFood);
+    public ResponseEntity<FoodDTO> createFood(@RequestBody FoodDTO foodDTO) {
+        return ResponseEntity.ok(foodService.createFood(foodDTO));
     }
-    
-    // Update food (admin only)
+
     @PutMapping("/{id}")
-    public ResponseEntity<Food> updateFood(@PathVariable Long id, @RequestBody Food food) {
-        Food updatedFood = foodService.updateFood(id, food);
-        return ResponseEntity.ok(updatedFood);
+    public ResponseEntity<FoodDTO> updateFood(@PathVariable Long id, @RequestBody FoodDTO foodDTO) {
+        return ResponseEntity.ok(foodService.updateFood(id, foodDTO));
     }
-    
-    // Delete food (admin only)
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFood(@PathVariable Long id) {
         foodService.deleteFood(id);
