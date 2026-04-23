@@ -1,13 +1,26 @@
 package com.mealapp.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "meal_plans")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class MealPlan {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,53 +28,38 @@ public class MealPlan {
     @Column(nullable = false)
     private String name;
     
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "week_start_date", nullable = false)
+    private LocalDate weekStartDate;
+    
+    @Column(name = "week_end_date", nullable = false)
+    private LocalDate weekEndDate;
     
     @Column(name = "total_calories")
     private Integer totalCalories;
     
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "total_budget", precision = 10, scale = 2)
+    private BigDecimal totalBudget;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(length = 50)
+    private String status = "ACTIVE"; // ACTIVE, COMPLETED, CANCELLED
+    
+    @Column(columnDefinition = "NVARCHAR(MAX)")
+    private String notes;
+    
+    @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnore
     private User user;
     
-    @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<MealPlanItem> mealItems;
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
     
-    // Constructors
-    public MealPlan() {
-        this.createdAt = LocalDateTime.now();
-    }
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     
-    public MealPlan(String name, LocalDate date, User user) {
-        this();
-        this.name = name;
-        this.date = date;
-        this.user = user;
-    }
-    
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public LocalDate getDate() { return date; }
-    public void setDate(LocalDate date) { this.date = date; }
-    
-    public Integer getTotalCalories() { return totalCalories; }
-    public void setTotalCalories(Integer totalCalories) { this.totalCalories = totalCalories; }
-    
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
-    
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-    
-    public List<MealPlanItem> getMealItems() { return mealItems; }
-    public void setMealItems(List<MealPlanItem> mealItems) { this.mealItems = mealItems; }
+    // Relationships
+    @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MealPlanItem> items = new ArrayList<>();
 }

@@ -5,39 +5,32 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "meal_plan_items")
+@Table(name = "food_reviews", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"user_id", "food_id"})
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MealPlanItem {
+public class FoodReview {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "day_of_week", nullable = false, length = 20)
-    private String dayOfWeek; // Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
-    
-    @Column(name = "meal_type", nullable = false, length = 50)
-    private String mealType; // BREAKFAST, LUNCH, DINNER, SNACK
-    
-    private Integer servings = 1;
+    @Column(nullable = false)
+    private Integer rating; // 1-5
     
     @Column(columnDefinition = "NVARCHAR(MAX)")
-    private String notes;
-    
-    @Column(name = "is_completed")
-    private Boolean isCompleted = false;
+    private String comment;
     
     @ManyToOne
-    @JoinColumn(name = "meal_plan_id")
-    @JsonIgnore
-    private MealPlan mealPlan;
+    @JoinColumn(name = "user_id")
+    private User user;
     
     @ManyToOne
     @JoinColumn(name = "food_id")
@@ -46,4 +39,8 @@ public class MealPlanItem {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 }

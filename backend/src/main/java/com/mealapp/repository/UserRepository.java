@@ -5,13 +5,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     
-    // Find user by email
     Optional<User> findByEmail(String email);
     
-    // Check if email exists
-    boolean existsByEmail(String email);
+    Boolean existsByEmail(String email);
+    
+    List<User> findByRole(String role);
+    
+    List<User> findByStatus(String status);
+    
+    List<User> findByRoleAndStatus(String role, String status);
 }
