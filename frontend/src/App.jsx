@@ -19,6 +19,10 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isLoginRoute = location.pathname === '/login'
 
+  console.log('Current path:', location.pathname)
+  console.log('Is admin route:', isAdminRoute)
+  console.log('Is login route:', isLoginRoute)
+
   return (
     <div className="App">
       {!isAdminRoute && !isLoginRoute && <Navbar />}

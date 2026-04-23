@@ -27,6 +27,26 @@ export const adminService = {
     }
   },
 
+  // Auth Management
+  logout: async () => {
+    try {
+      // Call logout API if available
+      await api.post('/auth/logout')
+    } catch (error) {
+      console.error('Error during logout API call:', error)
+      // Continue with local logout even if API fails
+    } finally {
+      // Always clear local storage
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('refreshToken')
+      
+      // Clear any other admin-specific data
+      localStorage.removeItem('adminPreferences')
+      localStorage.removeItem('adminSession')
+    }
+  },
+
   // Users Management
   getAllUsers: async () => {
     const response = await api.get('/admin/users')

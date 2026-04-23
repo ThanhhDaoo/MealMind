@@ -1,35 +1,87 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { adminService } from '../services/adminService'
+import './AdminLayout.css'
 import './AdminDashboard.css'
 
 const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalMeals: 0,
+    totalOrders: 0,
+    revenue: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      const data = await adminService.getDashboardStats()
+      setStats(data)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen)
+  }
+
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
+    if (!confirmed) return
+
+    try {
+      setLoggingOut(true)
+      await adminService.logout()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Force logout even if there's an error
+      localStorage.clear()
+      navigate('/login', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
 
   const metrics = [
     {
       icon: 'group',
       title: 'Tổng người dùng',
-      value: '1,284,502',
+      value: loading ? '...' : stats.totalUsers.toLocaleString(),
       change: '+12.5%',
       color: 'primary'
     },
     {
-      icon: 'calendar_today',
-      title: 'Kế hoạch đang hoạt động',
-      value: '48,291',
+      icon: 'restaurant',
+      title: 'Tổng món ăn',
+      value: loading ? '...' : stats.totalMeals.toLocaleString(),
       change: '+4.2%',
       color: 'secondary'
     },
     {
       icon: 'payments',
       title: 'Doanh thu tháng này',
-      value: '$142,850',
+      value: loading ? '...' : `$${stats.revenue.toLocaleString()}`,
       change: '+8.9%',
       color: 'tertiary'
     },
     {
       icon: 'smart_toy',
       title: 'Gợi ý AI đã tạo',
-      value: '892,104',
+      value: loading ? '...' : stats.totalOrders.toLocaleString(),
       change: 'LIVE',
       color: 'ai',
       isLive: true
@@ -85,7 +137,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Sidebar */}
-      <aside className="admin-sidebar">
+      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo">
             <span className="material-icons">restaurant_menu</span>
@@ -97,22 +149,22 @@ const AdminDashboard = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="#" className="nav-item active">
+          <Link to="/admin" className="nav-item active">
             <span className="material-icons">dashboard</span>
             <span>Overview</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/meals" className="nav-item">
             <span className="material-icons">restaurant</span>
             <span>Meals</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/users" className="nav-item">
             <span className="material-icons">group</span>
             <span>Users</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/analytics" className="nav-item">
             <span className="material-icons">insights</span>
             <span>Analytics</span>
-          </a>
+          </Link>
           <a href="#" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
@@ -120,25 +172,49 @@ const AdminDashboard = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <a href="#" className="nav-item logout">
-            <span className="material-icons">logout</span>
-            <span>Logout</span>
-          </a>
+          <button 
+            onClick={handleLogout} 
+            disabled={loggingOut}
+            className="nav-item logout" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              width: '100%', 
+              textAlign: 'left', 
+              cursor: loggingOut ? 'not-allowed' : 'pointer',
+              opacity: loggingOut ? 0.6 : 1
+            }}
+          >
+            <span className="material-icons">
+              {loggingOut ? 'hourglass_empty' : 'logout'}
+            </span>
+            <span>{loggingOut ? 'Đang đăng xuất...' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
+
+      {/* Sidebar Overlay for Mobile */}
+      {sidebarOpen && (
+        <div className="sidebar-overlay" onClick={toggleSidebar}></div>
+      )}
 
       {/* Main Content */}
       <div className="admin-main">
         {/* Top App Bar */}
         <header className="admin-header">
-          <div className="header-search">
-            <span className="material-icons">search</span>
-            <input
-              type="text"
-              placeholder="Tìm kiếm dữ liệu..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
+          <div className="header-left">
+            <button className="menu-toggle" onClick={toggleSidebar}>
+              <span className="material-icons">menu</span>
+            </button>
+            <div className="header-search">
+              <span className="material-icons">search</span>
+              <input
+                type="text"
+                placeholder="Tìm kiếm dữ liệu..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
           </div>
 
           <div className="header-actions">
@@ -151,7 +227,7 @@ const AdminDashboard = () => {
             <div className="header-profile">
               <div className="profile-info">
                 <p className="profile-name">Quản trị viên</p>
-                <p className="profile-email">mealmind@admin.vn</p>
+                <p className="profile-role">mealmind@admin.vn</p>
               </div>
               <img
                 src="https://i.pravatar.cc/150?img=68"

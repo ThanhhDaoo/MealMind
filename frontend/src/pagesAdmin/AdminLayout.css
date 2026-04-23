@@ -1,0 +1,131 @@
+/* Admin Layout Global Styles - Apply to all admin pages */
+
+/* Reset for all admin pages */
+body:has(.users-management),
+body:has(.meals-management),
+body:has(.analytics-page),
+body:has(.admin-dashboard) {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  display: block !important;
+  place-items: unset !important;
+  min-width: 100% !important;
+  width: 100% !important;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Common admin page container styles */
+.users-management,
+.meals-management,
+.analytics-page,
+.admin-dashboard {
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* Common main content area */
+.users-main,
+.meals-main,
+.analytics-main,
+.admin-main {
+  margin-left: 256px;
+  min-height: 100vh;
+  width: calc(100% - 256px);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Common sidebar styles */
+.users-sidebar,
+.meals-sidebar,
+.analytics-sidebar,
+.admin-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 256px;
+  height: 100vh;
+  z-index: 50;
+  overflow-x: hidden;
+}
+
+/* Common header styles */
+.users-header,
+.meals-header,
+.analytics-header,
+.admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Common content area */
+.users-content,
+.meals-content,
+.analytics-content,
+.admin-content {
+  width: 100%;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .users-main,
+  .meals-main,
+  .analytics-main,
+  .admin-main {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .users-sidebar,
+  .meals-sidebar,
+  .analytics-sidebar,
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+  
+  .users-sidebar.open,
+  .meals-sidebar.open,
+  .analytics-sidebar.open,
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .users-sidebar,
+  .meals-sidebar,
+  .analytics-sidebar,
+  .admin-sidebar {
+    width: 220px;
+  }
+  
+  .users-main,
+  .meals-main,
+  .analytics-main,
+  .admin-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+  }
+}

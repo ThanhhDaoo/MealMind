@@ -12,7 +12,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('authToken')
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -27,9 +27,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error)
     if (error.response?.status === 401) {
       localStorage.removeItem('authToken')
-      window.location.href = '/login'
+      localStorage.removeItem('token')
+      // Don't redirect to login for admin pages, just log the error
+      console.warn('Unauthorized access, but continuing...')
     }
     return Promise.reject(error)
   }

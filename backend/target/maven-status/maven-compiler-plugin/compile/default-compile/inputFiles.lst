@@ -31,4 +31,5 @@
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/controller/AuthController.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/security/CustomUserDetailsService.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/model/FoodInstruction.java
+/Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/controller/AdminController.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/service/JwtService.java

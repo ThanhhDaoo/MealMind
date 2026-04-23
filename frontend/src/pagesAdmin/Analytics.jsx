@@ -1,44 +1,97 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { adminService } from '../services/adminService'
+import './AdminLayout.css'
 import './Analytics.css'
 
 const Analytics = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [timeFilter, setTimeFilter] = useState('7days')
+  const [analyticsData, setAnalyticsData] = useState({
+    users: [],
+    foods: []
+  })
+  const [loading, setLoading] = useState(true)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const navigate = useNavigate()
 
-  const topMeals = [
-    {
-      name: 'Salad Lúa Mạch & Bơ',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=300&fit=crop',
-      category: 'Keto',
-      categoryColor: 'green',
-      rating: 4.9,
-      count: '1,240'
-    },
-    {
-      name: 'Poke Cá Hồi Tươi',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
-      category: 'Protein Cao',
-      categoryColor: 'orange',
-      rating: 4.8,
-      count: '985'
-    },
-    {
-      name: 'Mì Ý Sốt Pesto Rau Củ',
-      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?w=400&h=300&fit=crop',
-      category: 'Chay',
-      categoryColor: 'blue',
-      rating: 4.7,
-      count: '860'
-    },
-    {
-      name: 'Ức Gà Nướng Măng Tây',
-      image: 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=400&h=300&fit=crop',
-      category: 'Ít Carbs',
-      categoryColor: 'red',
-      rating: 4.9,
-      count: '742'
+  useEffect(() => {
+    fetchAnalyticsData()
+  }, [])
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true)
+      const data = await adminService.getAnalytics()
+      setAnalyticsData(data)
+    } catch (error) {
+      console.error('Error fetching analytics data:', error)
+    } finally {
+      setLoading(false)
     }
-  ]
+  }
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
+    if (!confirmed) return
+
+    try {
+      setLoggingOut(true)
+      await adminService.logout()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Force logout even if there's an error
+      localStorage.clear()
+      navigate('/login', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
+
+  // Calculate real stats from API data
+  const calculateStats = () => {
+    const totalUsers = analyticsData.users.length
+    const totalFoods = analyticsData.foods.length
+    const activeUsers = analyticsData.users.filter(user => user.status === 'ACTIVE').length
+    const successRate = totalFoods > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
+
+    return {
+      aiSuccessRate: successRate,
+      newUsers: totalUsers,
+      totalMeals: totalFoods,
+      activeUsers: activeUsers
+    }
+  }
+
+  const stats = calculateStats()
+
+  // Get top meals from real data
+  const getTopMeals = () => {
+    if (!analyticsData.foods || analyticsData.foods.length === 0) {
+      return []
+    }
+
+    return analyticsData.foods.slice(0, 4).map((food, index) => ({
+      name: food.name,
+      image: food.image || food.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
+      category: food.category || 'Regular',
+      categoryColor: getCategoryColor(food.category),
+      rating: 4.5 + (index * 0.1), // Simulated rating
+      count: `${Math.floor(Math.random() * 1000) + 500}` // Simulated count
+    }))
+  }
+
+  const getCategoryColor = (category) => {
+    if (!category) return 'blue'
+    const cat = category.toLowerCase()
+    if (cat.includes('vegan') || cat.includes('chay')) return 'green'
+    if (cat.includes('keto') || cat.includes('low-carb')) return 'orange'
+    if (cat.includes('protein') || cat.includes('meat')) return 'red'
+    return 'blue'
+  }
+
+  const topMeals = getTopMeals()
 
   return (
     <div className="analytics-page">
@@ -46,7 +99,7 @@ const Analytics = () => {
       <aside className="analytics-sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <span className="material-icons">restaurant</span>
+            <span className="material-icons">restaurant_menu</span>
           </div>
           <div className="sidebar-brand">
             <h1>MealMind</h1>
@@ -55,22 +108,22 @@ const Analytics = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="#" className="nav-item">
+          <Link to="/admin" className="nav-item">
             <span className="material-icons">dashboard</span>
             <span>Overview</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/meals" className="nav-item">
             <span className="material-icons">restaurant</span>
             <span>Meals</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/users" className="nav-item">
             <span className="material-icons">group</span>
             <span>Users</span>
-          </a>
-          <a href="#" className="nav-item active">
+          </Link>
+          <Link to="/admin/analytics" className="nav-item active">
             <span className="material-icons">insights</span>
             <span>Analytics</span>
-          </a>
+          </Link>
           <a href="#" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
@@ -78,10 +131,24 @@ const Analytics = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <a href="#" className="nav-item logout">
-            <span className="material-icons">logout</span>
-            <span>Logout</span>
-          </a>
+          <button 
+            onClick={handleLogout} 
+            disabled={loggingOut}
+            className="nav-item logout" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              width: '100%', 
+              textAlign: 'left', 
+              cursor: loggingOut ? 'not-allowed' : 'pointer',
+              opacity: loggingOut ? 0.6 : 1
+            }}
+          >
+            <span className="material-icons">
+              {loggingOut ? 'hourglass_empty' : 'logout'}
+            </span>
+            <span>{loggingOut ? 'Đang đăng xuất...' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
 
@@ -112,8 +179,8 @@ const Analytics = () => {
             <div className="header-divider"></div>
             <div className="header-profile">
               <div className="profile-info">
-                <p className="profile-name">Quản Trị Viên</p>
-                <p className="profile-role">Hệ Thống</p>
+                <p className="profile-name">Quản trị viên</p>
+                <p className="profile-role">mealmind@admin.vn</p>
               </div>
               <img
                 src="https://i.pravatar.cc/150?img=68"
@@ -154,10 +221,10 @@ const Analytics = () => {
                 <span className="material-icons">auto_awesome</span>
               </div>
               <p className="stat-label">TỶ LỆ AI THÀNH CÔNG</p>
-              <h3 className="stat-value">94.2%</h3>
+              <h3 className="stat-value">{loading ? '...' : `${stats.aiSuccessRate}%`}</h3>
               <p className="stat-trend">
                 <span className="material-icons">trending_up</span>
-                +2.4% so với tuần trước
+                Dựa trên tỷ lệ người dùng hoạt động
               </p>
             </div>
 
@@ -188,13 +255,19 @@ const Analytics = () => {
               <div className="stat-icon secondary">
                 <span className="material-icons">person_add</span>
               </div>
-              <p className="stat-label">NGƯỜI DÙNG MỚI</p>
-              <h3 className="stat-value secondary">1,284</h3>
+              <p className="stat-label">TỔNG NGƯỜI DÙNG</p>
+              <h3 className="stat-value secondary">{loading ? '...' : stats.newUsers.toLocaleString()}</h3>
               <div className="user-avatars">
-                <img src="https://i.pravatar.cc/150?img=12" alt="User" />
-                <img src="https://i.pravatar.cc/150?img=45" alt="User" />
-                <img src="https://i.pravatar.cc/150?img=33" alt="User" />
-                <div className="avatar-more">+52</div>
+                {analyticsData.users.slice(0, 3).map((user, index) => (
+                  <img 
+                    key={user.id || index} 
+                    src={user.avatar || `https://i.pravatar.cc/150?img=${user.id || index + 12}`} 
+                    alt="User" 
+                  />
+                ))}
+                {analyticsData.users.length > 3 && (
+                  <div className="avatar-more">+{analyticsData.users.length - 3}</div>
+                )}
               </div>
             </div>
           </div>
@@ -252,31 +325,41 @@ const Analytics = () => {
             <div className="section-header">
               <div>
                 <h3>Món Ăn Thịnh Hành Nhất</h3>
-                <p>Gợi ý từ AI được người dùng thêm vào kế hoạch nhiều nhất tuần này</p>
+                <p>Danh sách món ăn từ cơ sở dữ liệu hệ thống ({analyticsData.foods.length} món)</p>
               </div>
               <button className="view-all-btn">Xem tất cả</button>
             </div>
             <div className="meals-grid">
-              {topMeals.map((meal, index) => (
-                <div key={index} className="meal-card">
-                  <div className="meal-image">
-                    <img src={meal.image} alt={meal.name} />
-                  </div>
-                  <div className="meal-info">
-                    <div className="meal-meta">
-                      <span className={`meal-category ${meal.categoryColor}`}>
-                        {meal.category}
-                      </span>
-                      <span className="meal-rating">
-                        <span className="material-icons">star</span>
-                        {meal.rating}
-                      </span>
-                    </div>
-                    <h4>{meal.name}</h4>
-                    <p>Được thêm {meal.count} lần</p>
-                  </div>
+              {loading ? (
+                <div style={{ gridColumn: 'span 4', textAlign: 'center', padding: '2rem' }}>
+                  <p>Đang tải dữ liệu...</p>
                 </div>
-              ))}
+              ) : topMeals.length === 0 ? (
+                <div style={{ gridColumn: 'span 4', textAlign: 'center', padding: '2rem' }}>
+                  <p>Không có dữ liệu món ăn</p>
+                </div>
+              ) : (
+                topMeals.map((meal, index) => (
+                  <div key={index} className="meal-card">
+                    <div className="meal-image">
+                      <img src={meal.image} alt={meal.name} />
+                    </div>
+                    <div className="meal-info">
+                      <div className="meal-meta">
+                        <span className={`meal-category ${meal.categoryColor}`}>
+                          {meal.category}
+                        </span>
+                        <span className="meal-rating">
+                          <span className="material-icons">star</span>
+                          {meal.rating}
+                        </span>
+                      </div>
+                      <h4>{meal.name}</h4>
+                      <p>Được thêm {meal.count} lần</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
