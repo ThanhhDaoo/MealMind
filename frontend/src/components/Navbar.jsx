@@ -1,30 +1,69 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
+import { useState } from 'react'
 
 const Navbar = () => {
+  const location = useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const isActive = (path) => location.pathname === path
+
   return (
     <nav className="navbar">
       <div className="nav-container">
         <Link to="/" className="nav-logo">
-          🍜 Hôm Nay Ăn Gì
+          🍜 MealMind
         </Link>
-        <ul className="nav-menu">
+        
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="mobile-menu-toggle"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <ul className={`nav-menu ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <li className="nav-item">
-            <Link to="/foods" className="nav-link">
+            <Link 
+              to="/" 
+              className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Tổng quan
+            </Link>
+          </li>
+          <li className="nav-item">
+            <Link 
+              to="/foods" 
+              className={`nav-link ${isActive('/foods') ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
               Món ăn
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/meal-plan" className="nav-link">
-              Kế hoạch tuần
+            <Link 
+              to="/meal-plan" 
+              className={`nav-link ${isActive('/meal-plan') ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Kế hoạch 
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/ai-suggest" className="nav-link">
-              AI gợi ý
+            <Link 
+              to="/favorites" 
+              className={`nav-link ${isActive('/favorites') ? 'active' : ''}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              AI Gợi ý
             </Link>
           </li>
         </ul>
-        <Link to="/ai-suggest" className="cta-primary">
+        
+        <Link to="/" className="cta-primary">
           Gợi ý ngay
         </Link>
       </div>

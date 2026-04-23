@@ -1,0 +1,550 @@
+/* Hero Section - New Design */
+.hero-new {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6rem;
+  align-items: center;
+  padding: 4rem 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.hero-content-new {
+  padding-left: 0;
+}
+
+.hero-tag {
+  color: #00A86B;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+
+.hero-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #1a1a1a;
+  margin-bottom: 2rem;
+}
+
+.highlight-green {
+  color: #00A86B;
+}
+
+.hero-desc {
+  font-size: 1.2rem;
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.btn-green {
+  background: #00A86B;
+  color: white;
+  border: none;
+  padding: 1.2rem 2.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-green:hover {
+  background: #008f5a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 168, 107, 0.3);
+}
+
+.btn-outline-white {
+  background: transparent;
+  color: #1a1a1a;
+  border: 2px solid #e0e0e0;
+  padding: 1.2rem 2.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-white:hover {
+  border-color: #00A86B;
+  color: #00A86B;
+}
+
+.hero-image-new {
+  position: relative;
+}
+
+.hero-image-new img {
+  width: 100%;
+  max-width: 600px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+.image-badge {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.badge-icon {
+  font-size: 1.2rem;
+}
+
+.badge-text {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* AI Form Section */
+.ai-form-section {
+  background: linear-gradient(135deg, #E8F5E9 0%, #C8E6C9 100%);
+  padding: 5rem 2rem;
+  margin: 5rem 0;
+  border-radius: 30px;
+}
+
+.form-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 3rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.form-field label {
+  display: block;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 1.2rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 1.05rem;
+  transition: all 0.3s ease;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #00A86B;
+  background: white;
+}
+
+.form-field input::placeholder {
+  color: #999;
+}
+
+.btn-generate {
+  width: 100%;
+  background: #00A86B;
+  color: white;
+  border: none;
+  padding: 1.2rem 2rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-generate:hover {
+  background: #008f5a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 168, 107, 0.3);
+}
+
+/* Budget Food Section */
+.budget-food-section {
+  max-width: 1600px;
+  margin: 5rem auto;
+  padding: 0 2rem;
+}
+
+.section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-align: center;
+  color: #1a1a1a;
+  margin-bottom: 3rem;
+}
+
+.budget-tabs-new {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.tab-new {
+  background: white;
+  color: #666;
+  border: 2px solid #e0e0e0;
+  padding: 1rem 3rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.tab-new.active {
+  background: #00A86B;
+  color: white;
+  border-color: #00A86B;
+}
+
+.tab-new:hover:not(.active) {
+  border-color: #00A86B;
+  color: #00A86B;
+}
+
+.food-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.5rem;
+}
+
+.food-card-new {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.food-card-new:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.food-card-new img {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+.food-card-content {
+  padding: 2rem;
+}
+
+.food-card-content h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+  line-height: 1.4;
+}
+
+.food-meta-new {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Weekly Plan Section */
+.weekly-plan-section {
+  max-width: 1600px;
+  margin: 5rem auto;
+  padding: 0 2rem;
+}
+
+.section-header-new {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3rem;
+}
+
+.section-subtitle {
+  color: #666;
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+.btn-create-plan {
+  background: #00A86B;
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.05rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-create-plan:hover {
+  background: #008f5a;
+  transform: translateY(-2px);
+}
+
+.weekly-table {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.weekly-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.weekly-table thead {
+  background: #f5f5f5;
+}
+
+.weekly-table th {
+  padding: 1.2rem;
+  text-align: left;
+  font-weight: 600;
+  color: #1a1a1a;
+  border-bottom: 2px solid #e0e0e0;
+  font-size: 1.05rem;
+}
+
+.weekly-table td {
+  padding: 1.2rem;
+  border-bottom: 1px solid #f0f0f0;
+  color: #666;
+  font-size: 1rem;
+}
+
+.weekly-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.day-cell {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-new {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 3rem;
+  }
+  
+  .hero-content-new {
+    padding-left: 0;
+  }
+  
+  .hero-title {
+    font-size: 2.8rem;
+  }
+  
+  .hero-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .hero-image-new {
+    display: flex;
+    justify-content: center;
+  }
+  
+  .hero-image-new img {
+    max-width: 400px;
+  }
+  
+  .food-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .section-header-new {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+  
+  .hero-desc {
+    font-size: 1rem;
+  }
+  
+  .btn-green,
+  .btn-outline-white {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .hero-buttons {
+    width: 100%;
+  }
+  
+  .ai-form-section {
+    padding: 3rem 1.5rem;
+    margin: 3rem 0;
+  }
+  
+  .form-title {
+    font-size: 1.5rem;
+  }
+  
+  .food-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .budget-tabs-new {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  
+  .tab-new {
+    flex: 1;
+    min-width: 100px;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+  }
+  
+  .weekly-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .weekly-table table {
+    min-width: 800px;
+  }
+  
+  .weekly-table th,
+  .weekly-table td {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .budget-food-section,
+  .weekly-plan-section {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-new {
+    padding: 2rem 0;
+  }
+  
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .hero-tag {
+    font-size: 0.8rem;
+  }
+  
+  .hero-desc {
+    font-size: 0.95rem;
+  }
+  
+  .btn-green,
+  .btn-outline-white {
+    padding: 0.875rem 1.5rem;
+    font-size: 0.95rem;
+  }
+  
+  .ai-form-section {
+    padding: 2rem 1rem;
+    border-radius: 20px;
+  }
+  
+  .form-title {
+    font-size: 1.3rem;
+  }
+  
+  .form-field input {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+  }
+  
+  .btn-generate {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .food-card-content h3 {
+    font-size: 1rem;
+  }
+  
+  .food-meta-new {
+    font-size: 0.85rem;
+  }
+  
+  .tab-new {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+  
+  .section-header-new {
+    gap: 1rem;
+  }
+  
+  .btn-create-plan {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+  }
+  
+  .weekly-table th,
+  .weekly-table td {
+    padding: 0.6rem;
+    font-size: 0.85rem;
+  }
+}

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import Home from './pages/Home'
 import FoodList from './pages/FoodList'
 import FoodDetail from './pages/FoodDetail'
@@ -23,6 +24,7 @@ function App() {
             <Route path="/login" element={<Login />} />
           </Routes>
         </main>
+        <Footer />
       </div>
     </Router>
   )
