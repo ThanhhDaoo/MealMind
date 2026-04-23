@@ -54,8 +54,8 @@ const Navbar = () => {
           </li>
           <li className="nav-item">
             <Link 
-              to="/favorites" 
-              className={`nav-link ${isActive('/favorites') ? 'active' : ''}`}
+              to="/ai-recommendation" 
+              className={`nav-link ${isActive('/ai-recommendation') ? 'active' : ''}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               AI Gợi ý
