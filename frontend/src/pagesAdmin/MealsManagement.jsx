@@ -1,80 +1,105 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { foodService } from '../services/foodService'
+import './AdminLayout.css'
 import './MealsManagement.css'
 
 const MealsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [meals, setMeals] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [error, setError] = useState(null)
+  const navigate = useNavigate()
 
+  // Load meals data from API
+  useEffect(() => {
+    const loadMeals = async () => {
+      try {
+        setLoading(true)
+        console.log('Loading meals from API...')
+        const data = await foodService.getAllFoods()
+        console.log('Meals loaded:', data)
+        setMeals(data)
+        setError(null)
+      } catch (err) {
+        console.error('Error loading meals:', err)
+        setError('Không thể tải dữ liệu món ăn')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadMeals()
+  }, [])
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
+    if (!confirmed) return
+
+    try {
+      setLoggingOut(true)
+      await adminService.logout()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Force logout even if there's an error
+      localStorage.clear()
+      navigate('/login', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
+
+  // Calculate stats from real data
   const stats = [
     {
       icon: 'restaurant_menu',
       label: 'Tổng số món',
-      value: '1,284',
-      subtext: '+12% tháng này',
+      value: meals.length.toLocaleString(),
+      subtext: `${meals.length} món ăn`,
       color: 'green',
       trend: 'up'
     },
     {
       icon: 'local_fire_department',
       label: 'Avg. Calories',
-      value: '452',
-      subtext: 'Mức năng lượng tiêu chuẩn',
+      value: meals.length > 0 ? Math.round(meals.reduce((sum, meal) => sum + (meal.calories || 0), 0) / meals.length) : 0,
+      subtext: 'Mức năng lượng trung bình',
       color: 'amber'
     },
     {
       icon: 'task_alt',
       label: 'Đã xuất bản',
-      value: '1,120',
-      subtext: '87% tổng dữ liệu',
+      value: meals.filter(meal => meal.status !== 'draft').length.toLocaleString(),
+      subtext: `${Math.round((meals.filter(meal => meal.status !== 'draft').length / meals.length) * 100) || 0}% tổng dữ liệu`,
       color: 'blue'
     },
     {
       icon: 'edit_note',
       label: 'Bản nháp',
-      value: '164',
+      value: meals.filter(meal => meal.status === 'draft').length.toLocaleString(),
       subtext: 'Cần được phê duyệt',
       color: 'purple'
     }
   ]
 
-  const meals = [
-    {
-      id: '#MM-001',
-      name: 'Salad cá hồi Quinoa',
-      image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop',
-      category: 'Vegan',
-      categoryColor: 'green',
-      calories: '320 kcal',
-      status: 'published'
-    },
-    {
-      id: '#MM-002',
-      name: 'Bít tết bò Mỹ sốt tiêu đen',
-      image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=100&h=100&fit=crop',
-      category: 'Keto',
-      categoryColor: 'amber',
-      calories: '580 kcal',
-      status: 'published'
-    },
-    {
-      id: '#MM-003',
-      name: 'Buddha Bowl Thuần Chay',
-      image: 'https://images.unsplash.com/photo-1511690743698-d9d85f2fbf38?w=100&h=100&fit=crop',
-      category: 'Vegan',
-      categoryColor: 'green',
-      calories: '410 kcal',
-      status: 'draft'
-    },
-    {
-      id: '#MM-004',
-      name: 'Pizza Margherita thủ công',
-      image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=100&h=100&fit=crop',
-      category: 'Regular',
-      categoryColor: 'blue',
-      calories: '720 kcal',
-      status: 'published'
-    }
-  ]
+  // Filter meals based on search query
+  const filteredMeals = meals.filter(meal =>
+    meal.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    meal.category?.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Helper function to get category color
+  const getCategoryColor = (category) => {
+    if (!category) return 'blue'
+    const cat = category.toLowerCase()
+    if (cat.includes('vegan') || cat.includes('chay')) return 'green'
+    if (cat.includes('keto') || cat.includes('low-carb')) return 'amber'
+    if (cat.includes('protein') || cat.includes('meat')) return 'purple'
+    return 'blue'
+  }
 
   return (
     <div className="meals-management">
@@ -82,7 +107,7 @@ const MealsManagement = () => {
       <aside className="meals-sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <span className="material-icons">restaurant</span>
+            <span className="material-icons">restaurant_menu</span>
           </div>
           <div className="sidebar-brand">
             <h1>MealMind</h1>
@@ -91,22 +116,22 @@ const MealsManagement = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="#" className="nav-item">
+          <Link to="/admin" className="nav-item">
             <span className="material-icons">dashboard</span>
             <span>Overview</span>
-          </a>
-          <a href="#" className="nav-item active">
+          </Link>
+          <Link to="/admin/meals" className="nav-item active">
             <span className="material-icons">restaurant</span>
             <span>Meals</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/users" className="nav-item">
             <span className="material-icons">group</span>
             <span>Users</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/analytics" className="nav-item">
             <span className="material-icons">insights</span>
             <span>Analytics</span>
-          </a>
+          </Link>
           <a href="#" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
@@ -114,10 +139,24 @@ const MealsManagement = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <a href="#" className="nav-item logout">
-            <span className="material-icons">logout</span>
-            <span>Logout</span>
-          </a>
+          <button 
+            onClick={handleLogout} 
+            disabled={loggingOut}
+            className="nav-item logout" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              width: '100%', 
+              textAlign: 'left', 
+              cursor: loggingOut ? 'not-allowed' : 'pointer',
+              opacity: loggingOut ? 0.6 : 1
+            }}
+          >
+            <span className="material-icons">
+              {loggingOut ? 'hourglass_empty' : 'logout'}
+            </span>
+            <span>{loggingOut ? 'Đang đăng xuất...' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
 
@@ -145,11 +184,11 @@ const MealsManagement = () => {
             <div className="header-divider"></div>
             <div className="header-profile">
               <div className="profile-info">
-                <p className="profile-name">Admin MealMind</p>
-                <p className="profile-role">Quản trị viên</p>
+                <p className="profile-name">Quản trị viên</p>
+                <p className="profile-role">mealmind@admin.vn</p>
               </div>
               <img
-                src="https://i.pravatar.cc/150?img=47"
+                src="https://i.pravatar.cc/150?img=68"
                 alt="Admin"
                 className="profile-avatar"
               />
@@ -190,75 +229,228 @@ const MealsManagement = () => {
 
           {/* Table Card */}
           <div className="table-card">
-            <div className="table-header">
-              <h3>
+            <div className="table-header" style={{
+              padding: '1.5rem',
+              borderBottom: '1px solid rgba(255, 255, 255, 0.2)',
+              background: 'rgba(255, 255, 255, 0.1)',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <h3 style={{
+                fontWeight: '700',
+                color: '#1a1a1a',
+                margin: '0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}>
                 Danh sách thực đơn hiện tại
-                <span className="live-badge">LIVE</span>
+                <span style={{
+                  background: 'rgba(0, 100, 0, 0.1)',
+                  color: '#006400',
+                  fontSize: '10px',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '9999px',
+                  fontWeight: '700'
+                }}>LIVE</span>
               </h3>
-              <div className="table-actions">
-                <button className="action-btn">
-                  <span className="material-icons">filter_list</span>
+              <div style={{
+                display: 'flex', 
+                gap: '16px', 
+                alignItems: 'center'
+              }}>
+                <button style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#64748b',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 1)';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                }}>
+                  <span style={{fontSize: '14px'}}>🔍</span>
                   Bộ lọc
                 </button>
-                <button className="action-btn">
-                  <span className="material-icons">file_download</span>
+                <button style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  color: '#64748b',
+                  background: 'rgba(255, 255, 255, 0.9)',
+                  padding: '10px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(0, 0, 0, 0.1)',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 1)';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                }}>
+                  <span style={{fontSize: '14px'}}>📊</span>
                   Xuất CSV
                 </button>
               </div>
             </div>
 
-            <div className="table-wrapper">
-              <table className="meals-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Tên món ăn</th>
-                    <th>Phân loại</th>
-                    <th>Calories</th>
-                    <th className="text-center">Trạng thái</th>
-                    <th className="text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {meals.map((meal, index) => (
-                    <tr key={index}>
-                      <td className="meal-id">{meal.id}</td>
-                      <td>
-                        <div className="meal-info">
-                          <img src={meal.image} alt={meal.name} className="meal-image" />
-                          <span className="meal-name">{meal.name}</span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`category-badge ${meal.categoryColor}`}>
-                          {meal.category}
-                        </span>
-                      </td>
-                      <td className="meal-calories">{meal.calories}</td>
-                      <td className="text-center">
-                        <span className={`status-badge ${meal.status}`}>
-                          <span className="status-dot"></span>
-                          {meal.status === 'published' ? 'Published' : 'Draft'}
-                        </span>
-                      </td>
-                      <td className="text-right">
-                        <div className="action-buttons">
-                          <button className="action-icon edit">
-                            <span className="material-icons">edit</span>
-                          </button>
-                          <button className="action-icon delete">
-                            <span className="material-icons">delete</span>
-                          </button>
-                        </div>
-                      </td>
+            <div className="table-wrapper" style={{overflowX: 'auto', width: '100%'}}>
+              {loading ? (
+                <div style={{ padding: '2rem', textAlign: 'center' }}>
+                  <p>Đang tải dữ liệu...</p>
+                </div>
+              ) : error ? (
+                <div style={{ padding: '2rem', textAlign: 'center', color: '#ef4444' }}>
+                  <p>{error}</p>
+                </div>
+              ) : (
+                <table className="meals-table" style={{width: '100%', tableLayout: 'fixed'}}>
+                  <thead>
+                    <tr>
+                      <th style={{width: '80px', whiteSpace: 'nowrap'}}>ID</th>
+                      <th style={{width: '200px', whiteSpace: 'nowrap', textAlign: 'left'}}>Tên món ăn</th>
+                      <th style={{width: '100px', whiteSpace: 'nowrap'}}>Phân loại</th>
+                      <th style={{width: '80px', whiteSpace: 'nowrap'}}>Calories</th>
+                      <th className="text-center" style={{width: '100px', whiteSpace: 'nowrap', textAlign: 'left'}}>Trạng thái</th>
+                      <th className="text-right" style={{width: '160px', minWidth: '160px', whiteSpace: 'nowrap'}}>Hành động</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredMeals.map((meal, index) => (
+                      <tr key={meal.id || index}>
+                        <td className="meal-id" style={{width: '80px'}}>#{meal.id || `MM-${String(index + 1).padStart(3, '0')}`}</td>
+                        <td style={{width: '200px', textAlign: 'left'}}>
+                          <div className="meal-info">
+                            <img 
+                              src={meal.image || meal.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&h=100&fit=crop'} 
+                              alt={meal.name} 
+                              className="meal-image" 
+                            />
+                            <span className="meal-name">{meal.name}</span>
+                          </div>
+                        </td>
+                        <td style={{width: '100px', whiteSpace: 'nowrap'}}>
+                          <span className={`category-badge ${getCategoryColor(meal.category)}`}>
+                            {meal.category || 'Regular'}
+                          </span>
+                        </td>
+                        <td className="meal-calories" style={{width: '80px', whiteSpace: 'nowrap'}}>{meal.calories ? `${meal.calories} kcal` : 'N/A'}</td>
+                        <td className="text-center" style={{width: '100px', whiteSpace: 'nowrap', textAlign: 'left'}}>
+                          <span className={`status-badge ${meal.status || 'published'}`}>
+                            <span className="status-dot"></span>
+                            {meal.status === 'draft' ? 'Draft' : 'Published'}
+                          </span>
+                        </td>
+                        <td className="text-right" style={{
+                          width: '160px', 
+                          minWidth: '160px', 
+                          padding: '12px'
+                        }}>
+                          <div style={{
+                            display: 'flex', 
+                            gap: '8px', 
+                            justifyContent: 'flex-end'
+                          }}>
+                            <button 
+                              style={{
+                                padding: '8px 14px',
+                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                minWidth: '45px',
+                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-1px)';
+                                e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                              }}
+                              onClick={() => alert('Sửa món: ' + meal.name)}
+                            >
+                              <span style={{fontSize: '10px'}}>✏️</span>
+                              Sửa
+                            </button>
+                            <button 
+                              style={{
+                                padding: '8px 14px',
+                                background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '8px',
+                                fontSize: '11px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                minWidth: '45px',
+                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.2)',
+                                transition: 'all 0.2s ease',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '4px'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.target.style.transform = 'translateY(-1px)';
+                                e.target.style.boxShadow = '0 4px 8px rgba(239, 68, 68, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
+                              }}
+                              onClick={() => alert('Xóa món: ' + meal.name)}
+                            >
+                              <span style={{fontSize: '10px'}}>🗑️</span>
+                              Xóa
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             <div className="table-footer">
-              <p className="table-info">Hiển thị 1-4 trong số 1,284 món ăn</p>
+              <p className="table-info">Hiển thị 1-{filteredMeals.length} trong số {meals.length} món ăn</p>
               <div className="pagination">
                 <button className="page-btn" disabled>
                   <span className="material-icons">chevron_left</span>

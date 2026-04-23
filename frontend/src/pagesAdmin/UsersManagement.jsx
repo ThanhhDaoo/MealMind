@@ -1,82 +1,112 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { adminService } from '../services/adminService'
+import './AdminLayout.css'
 import './UsersManagement.css'
 
 const UsersManagement = () => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loggingOut, setLoggingOut] = useState(false)
+  const [activeTab, setActiveTab] = useState('all')
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const data = await adminService.getAllUsers()
+      setUsers(data)
+    } catch (error) {
+      console.error('Error fetching users:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteUser = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa người dùng này?')) {
+      try {
+        await adminService.deleteUser(id)
+        fetchUsers() // Refresh list
+      } catch (error) {
+        console.error('Error deleting user:', error)
+        alert('Không thể xóa người dùng!')
+      }
+    }
+  }
+
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
+    if (!confirmed) return
+
+    try {
+      setLoggingOut(true)
+      await adminService.logout()
+      navigate('/login', { replace: true })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      // Force logout even if there's an error
+      localStorage.clear()
+      navigate('/login', { replace: true })
+    } finally {
+      setLoggingOut(false)
+    }
+  }
 
   const stats = [
     {
       label: 'Tổng người dùng',
-      value: '1,284',
+      value: users.length.toString(),
       badge: '+12%',
       badgeColor: 'green',
       borderColor: 'green'
     },
     {
       label: 'Đang hoạt động',
-      value: '892',
-      subtext: '~70%',
+      value: users.filter(u => u.status === 'ACTIVE').length.toString(),
+      subtext: users.length > 0 ? `~${Math.round((users.filter(u => u.status === 'ACTIVE').length / users.length) * 100)}%` : '0%',
       borderColor: 'blue'
     },
     {
-      label: 'Người dùng mới (Tháng)',
-      value: '156',
+      label: 'Admin',
+      value: users.filter(u => u.role === 'ADMIN').length.toString(),
       badge: 'Hot',
       badgeColor: 'orange',
       borderColor: 'orange'
     },
     {
-      label: 'Tỷ lệ giữ chân',
-      value: '94%',
-      progress: 94,
+      label: 'User',
+      value: users.filter(u => u.role === 'USER').length.toString(),
+      progress: users.length > 0 ? Math.round((users.filter(u => u.role === 'USER').length / users.length) * 100) : 0,
       borderColor: 'purple'
     }
   ]
 
-  const [activeTab, setActiveTab] = useState('all')
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesTab = activeTab === 'all' || 
+                      (activeTab === 'admin' && user.role === 'ADMIN') ||
+                      (activeTab === 'user' && user.role === 'USER')
+    return matchesSearch && matchesTab
+  })
 
-  const users = [
-    {
-      id: '#MM-9021',
-      name: 'Lê Minh Anh',
-      avatar: 'https://i.pravatar.cc/150?img=12',
-      email: 'minhanh.le@email.com',
-      role: 'Admin',
-      roleColor: 'green',
-      lastLogin: '2 phút trước',
-      isOnline: true
-    },
-    {
-      id: '#MM-8842',
-      name: 'Trần Hoàng Nam',
-      avatar: 'https://i.pravatar.cc/150?img=33',
-      email: 'nam.tran@email.com',
-      role: 'User',
-      roleColor: 'gray',
-      lastLogin: '10 giờ trước',
-      isOnline: false
-    },
-    {
-      id: '#MM-7721',
-      name: 'Phạm Đức Thịnh',
-      avatar: 'https://i.pravatar.cc/150?img=68',
-      email: 'thinh.pham@email.com',
-      role: 'User',
-      roleColor: 'gray',
-      lastLogin: 'Hôm qua, 14:20',
-      isOnline: false
-    },
-    {
-      id: '#MM-6510',
-      name: 'Nguyễn Thu Thảo',
-      avatar: 'https://i.pravatar.cc/150?img=45',
-      email: 'thao.nguyen@email.com',
-      role: 'Admin',
-      roleColor: 'green',
-      lastLogin: '3 ngày trước',
-      isOnline: false
-    }
-  ]
+  const usersList = filteredUsers.map(user => ({
+    id: `#MM-${user.id}`,
+    name: user.name,
+    avatar: user.avatar || `https://i.pravatar.cc/150?img=${user.id}`,
+    email: user.email,
+    role: user.role === 'ADMIN' ? 'Admin' : 'User',
+    roleColor: user.role === 'ADMIN' ? 'green' : 'blue',
+    lastLogin: '2 phút trước',
+    isOnline: user.status === 'ACTIVE',
+    userId: user.id
+  }))
 
   return (
     <div className="users-management">
@@ -84,7 +114,7 @@ const UsersManagement = () => {
       <aside className="users-sidebar">
         <div className="sidebar-header">
           <div className="sidebar-logo">
-            <span className="material-icons">restaurant</span>
+            <span className="material-icons">restaurant_menu</span>
           </div>
           <div className="sidebar-brand">
             <h1>MealMind</h1>
@@ -93,22 +123,22 @@ const UsersManagement = () => {
         </div>
 
         <nav className="sidebar-nav">
-          <a href="#" className="nav-item">
+          <Link to="/admin" className="nav-item">
             <span className="material-icons">dashboard</span>
             <span>Overview</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/meals" className="nav-item">
             <span className="material-icons">restaurant</span>
             <span>Meals</span>
-          </a>
-          <a href="#" className="nav-item active">
+          </Link>
+          <Link to="/admin/users" className="nav-item active">
             <span className="material-icons">group</span>
             <span>Users</span>
-          </a>
-          <a href="#" className="nav-item">
+          </Link>
+          <Link to="/admin/analytics" className="nav-item">
             <span className="material-icons">insights</span>
             <span>Analytics</span>
-          </a>
+          </Link>
           <a href="#" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
@@ -116,10 +146,24 @@ const UsersManagement = () => {
         </nav>
 
         <div className="sidebar-footer">
-          <a href="#" className="nav-item logout">
-            <span className="material-icons">logout</span>
-            <span>Logout</span>
-          </a>
+          <button 
+            onClick={handleLogout} 
+            disabled={loggingOut}
+            className="nav-item logout" 
+            style={{ 
+              background: 'none', 
+              border: 'none', 
+              width: '100%', 
+              textAlign: 'left', 
+              cursor: loggingOut ? 'not-allowed' : 'pointer',
+              opacity: loggingOut ? 0.6 : 1
+            }}
+          >
+            <span className="material-icons">
+              {loggingOut ? 'hourglass_empty' : 'logout'}
+            </span>
+            <span>{loggingOut ? 'Đang đăng xuất...' : 'Logout'}</span>
+          </button>
         </div>
       </aside>
 
@@ -147,8 +191,8 @@ const UsersManagement = () => {
             <div className="header-divider"></div>
             <div className="header-profile">
               <div className="profile-info">
-                <p className="profile-name">Admin Nguyễn</p>
-                <p className="profile-role">Quản trị viên</p>
+                <p className="profile-name">Quản trị viên</p>
+                <p className="profile-role">mealmind@admin.vn</p>
               </div>
               <img
                 src="https://i.pravatar.cc/150?img=68"
@@ -241,57 +285,70 @@ const UsersManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((user, index) => (
-                    <tr key={index}>
-                      <td>
-                        <div className="user-info">
-                          <div className="user-avatar-wrapper">
-                            <img src={user.avatar} alt={user.name} className="user-avatar" />
-                            {user.isOnline && <div className="online-indicator"></div>}
-                          </div>
-                          <div>
-                            <div className="user-name">{user.name}</div>
-                            <div className="user-id">{user.id}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="user-email">{user.email}</td>
-                      <td>
-                        <span className={`role-badge ${user.roleColor}`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="last-login">{user.lastLogin}</td>
-                      <td className="text-right">
-                        <div className="action-buttons">
-                          <button className="action-icon edit">
-                            <span className="material-icons">edit</span>
-                          </button>
-                          <button className="action-icon delete">
-                            <span className="material-icons">delete</span>
-                          </button>
-                          <button className="action-icon more">
-                            <span className="material-icons">more_vert</span>
-                          </button>
-                        </div>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                        Đang tải dữ liệu...
                       </td>
                     </tr>
-                  ))}
+                  ) : usersList.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}>
+                        Không tìm thấy người dùng
+                      </td>
+                    </tr>
+                  ) : (
+                    usersList.map((user, index) => (
+                      <tr key={index}>
+                        <td>
+                          <div className="user-info">
+                            <div className="user-avatar-wrapper">
+                              <img src={user.avatar} alt={user.name} className="user-avatar" />
+                              {user.isOnline && <div className="online-indicator"></div>}
+                            </div>
+                            <div>
+                              <div className="user-name">{user.name}</div>
+                              <div className="user-id">{user.id}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="user-email">{user.email}</td>
+                        <td>
+                          <span className={`role-badge ${user.roleColor}`}>
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="last-login">{user.lastLogin}</td>
+                        <td className="text-right">
+                          <div className="action-buttons">
+                            <button className="action-icon edit">
+                              <span className="material-icons">edit</span>
+                            </button>
+                            <button 
+                              className="action-icon delete"
+                              onClick={() => handleDeleteUser(user.userId)}
+                            >
+                              <span className="material-icons">delete</span>
+                            </button>
+                            <button className="action-icon more">
+                              <span className="material-icons">more_vert</span>
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
             <div className="table-footer">
-              <p className="table-info">Hiển thị 1-10 trên 1,284 người dùng</p>
+              <p className="table-info">Hiển thị {usersList.length} trên {users.length} người dùng</p>
               <div className="pagination">
                 <button className="page-btn">
                   <span className="material-icons">chevron_left</span>
                 </button>
                 <button className="page-btn active">1</button>
-                <button className="page-btn">2</button>
-                <button className="page-btn">3</button>
-                <span className="page-dots">...</span>
-                <button className="page-btn">128</button>
                 <button className="page-btn">
                   <span className="material-icons">chevron_right</span>
                 </button>

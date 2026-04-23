@@ -21,6 +21,7 @@ com/mealapp/repository/MealPlanRepository.class
 com/mealapp/service/MealPlanService.class
 com/mealapp/service/JwtService.class
 com/mealapp/dto/InstructionDTO.class
+com/mealapp/controller/AdminController.class
 com/mealapp/security/CustomUserDetailsService.class
 com/mealapp/MealMindApplication.class
 com/mealapp/security/JwtAuthenticationFilter.class
@@ -32,4 +33,5 @@ com/mealapp/model/MealPlan.class
 com/mealapp/controller/FoodController.class
 com/mealapp/repository/IngredientRepository.class
 com/mealapp/controller/MealPlanController.class
+com/mealapp/controller/DashboardStats.class
 com/mealapp/service/AiService.class

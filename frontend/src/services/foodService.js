@@ -3,8 +3,15 @@ import api from './api'
 export const foodService = {
   // Get all foods with optional filters
   getAllFoods: async (params = {}) => {
-    const response = await api.get('/foods', { params })
-    return response.data
+    try {
+      console.log('Calling API /foods with params:', params)
+      const response = await api.get('/foods', { params })
+      console.log('API response:', response.data)
+      return response.data
+    } catch (error) {
+      console.error('API error:', error)
+      throw error
+    }
   },
 
   // Get featured foods for homepage
