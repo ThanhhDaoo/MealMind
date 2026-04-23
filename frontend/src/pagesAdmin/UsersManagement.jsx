@@ -6,76 +6,75 @@ const UsersManagement = () => {
 
   const stats = [
     {
-      icon: 'group',
       label: 'Tổng người dùng',
-      value: '12,845',
-      subtext: '+18% tháng này',
-      color: 'green',
-      trend: 'up'
+      value: '1,284',
+      badge: '+12%',
+      badgeColor: 'green',
+      borderColor: 'green'
     },
     {
-      icon: 'person_check',
       label: 'Đang hoạt động',
-      value: '8,234',
-      subtext: '64% tổng số',
-      color: 'blue'
+      value: '892',
+      subtext: '~70%',
+      borderColor: 'blue'
     },
     {
-      icon: 'workspace_premium',
-      label: 'Premium Users',
-      value: '2,156',
-      subtext: '17% tổng số',
-      color: 'amber'
+      label: 'Người dùng mới (Tháng)',
+      value: '156',
+      badge: 'Hot',
+      badgeColor: 'orange',
+      borderColor: 'orange'
     },
     {
-      icon: 'person_off',
-      label: 'Bị khóa',
-      value: '45',
-      subtext: 'Cần xem xét',
-      color: 'red'
+      label: 'Tỷ lệ giữ chân',
+      value: '94%',
+      progress: 94,
+      borderColor: 'purple'
     }
   ]
 
+  const [activeTab, setActiveTab] = useState('all')
+
   const users = [
     {
-      id: '#USR-001',
-      name: 'Nguyễn Văn An',
+      id: '#MM-9021',
+      name: 'Lê Minh Anh',
       avatar: 'https://i.pravatar.cc/150?img=12',
-      email: 'nguyenvanan@gmail.com',
-      role: 'Premium',
-      roleColor: 'amber',
-      joinDate: '15/03/2024',
-      status: 'active'
+      email: 'minhanh.le@email.com',
+      role: 'Admin',
+      roleColor: 'green',
+      lastLogin: '2 phút trước',
+      isOnline: true
     },
     {
-      id: '#USR-002',
-      name: 'Trần Thị Bình',
-      avatar: 'https://i.pravatar.cc/150?img=45',
-      email: 'tranthibinh@gmail.com',
-      role: 'Free',
-      roleColor: 'blue',
-      joinDate: '20/03/2024',
-      status: 'active'
-    },
-    {
-      id: '#USR-003',
-      name: 'Lê Minh Cường',
+      id: '#MM-8842',
+      name: 'Trần Hoàng Nam',
       avatar: 'https://i.pravatar.cc/150?img=33',
-      email: 'leminhcuong@gmail.com',
-      role: 'Premium',
-      roleColor: 'amber',
-      joinDate: '10/02/2024',
-      status: 'inactive'
+      email: 'nam.tran@email.com',
+      role: 'User',
+      roleColor: 'gray',
+      lastLogin: '10 giờ trước',
+      isOnline: false
     },
     {
-      id: '#USR-004',
-      name: 'Phạm Thu Dung',
-      avatar: 'https://i.pravatar.cc/150?img=47',
-      email: 'phamthudung@gmail.com',
-      role: 'Free',
-      roleColor: 'blue',
-      joinDate: '05/04/2024',
-      status: 'blocked'
+      id: '#MM-7721',
+      name: 'Phạm Đức Thịnh',
+      avatar: 'https://i.pravatar.cc/150?img=68',
+      email: 'thinh.pham@email.com',
+      role: 'User',
+      roleColor: 'gray',
+      lastLogin: 'Hôm qua, 14:20',
+      isOnline: false
+    },
+    {
+      id: '#MM-6510',
+      name: 'Nguyễn Thu Thảo',
+      avatar: 'https://i.pravatar.cc/150?img=45',
+      email: 'thao.nguyen@email.com',
+      role: 'Admin',
+      roleColor: 'green',
+      lastLogin: '3 ngày trước',
+      isOnline: false
     }
   ]
 
@@ -148,11 +147,11 @@ const UsersManagement = () => {
             <div className="header-divider"></div>
             <div className="header-profile">
               <div className="profile-info">
-                <p className="profile-name">Admin MealMind</p>
+                <p className="profile-name">Admin Nguyễn</p>
                 <p className="profile-role">Quản trị viên</p>
               </div>
               <img
-                src="https://i.pravatar.cc/150?img=47"
+                src="https://i.pravatar.cc/150?img=68"
                 alt="Admin"
                 className="profile-avatar"
               />
@@ -165,27 +164,33 @@ const UsersManagement = () => {
           {/* Page Header */}
           <div className="page-header">
             <div>
-              <h2>Quản lý Người dùng</h2>
-              <p>Theo dõi, quản lý và hỗ trợ người dùng trong hệ thống.</p>
+              <h2>Quản lý người dùng</h2>
+              <p>Quản trị viên có thể xem, chỉnh sửa và phân quyền cho người dùng hệ thống.</p>
             </div>
             <button className="add-user-btn">
               <span className="material-icons">person_add</span>
-              Thêm người dùng mới
+              Thêm người dùng
             </button>
           </div>
 
           {/* Stats Grid */}
           <div className="stats-grid">
             {stats.map((stat, index) => (
-              <div key={index} className={`stat-card ${stat.color}`}>
-                <span className={`stat-icon ${stat.color}`}>
-                  <span className="material-icons">{stat.icon}</span>
-                </span>
+              <div key={index} className={`stat-card border-${stat.borderColor}`}>
                 <p className="stat-label">{stat.label}</p>
-                <h3 className="stat-value">{stat.value}</h3>
-                <div className={`stat-subtext ${stat.trend ? 'trend' : ''}`}>
-                  {stat.trend && <span className="material-icons">trending_up</span>}
-                  {stat.subtext}
+                <div className="stat-content">
+                  <h3 className="stat-value">{stat.value}</h3>
+                  {stat.badge && (
+                    <span className={`stat-badge ${stat.badgeColor}`}>{stat.badge}</span>
+                  )}
+                  {stat.subtext && (
+                    <span className="stat-subtext">{stat.subtext}</span>
+                  )}
+                  {stat.progress !== undefined && (
+                    <div className="stat-progress">
+                      <div className="progress-bar" style={{ width: `${stat.progress}%` }}></div>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -194,18 +199,32 @@ const UsersManagement = () => {
           {/* Table Card */}
           <div className="table-card">
             <div className="table-header">
-              <h3>
-                Danh sách người dùng
-                <span className="live-badge">LIVE</span>
-              </h3>
+              <div className="table-tabs">
+                <button 
+                  className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('all')}
+                >
+                  Tất cả
+                </button>
+                <button 
+                  className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('admin')}
+                >
+                  Admin
+                </button>
+                <button 
+                  className={`tab-btn ${activeTab === 'user' ? 'active' : ''}`}
+                  onClick={() => setActiveTab('user')}
+                >
+                  Người dùng
+                </button>
+              </div>
               <div className="table-actions">
                 <button className="action-btn">
                   <span className="material-icons">filter_list</span>
-                  Bộ lọc
                 </button>
                 <button className="action-btn">
-                  <span className="material-icons">file_download</span>
-                  Xuất CSV
+                  <span className="material-icons">download</span>
                 </button>
               </div>
             </div>
@@ -214,23 +233,26 @@ const UsersManagement = () => {
               <table className="users-table">
                 <thead>
                   <tr>
-                    <th>ID</th>
                     <th>Người dùng</th>
                     <th>Email</th>
                     <th>Vai trò</th>
-                    <th>Ngày tham gia</th>
-                    <th className="text-center">Trạng thái</th>
-                    <th className="text-right">Hành động</th>
+                    <th>Đăng nhập cuối</th>
+                    <th className="text-right">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user, index) => (
                     <tr key={index}>
-                      <td className="user-id">{user.id}</td>
                       <td>
                         <div className="user-info">
-                          <img src={user.avatar} alt={user.name} className="user-avatar" />
-                          <span className="user-name">{user.name}</span>
+                          <div className="user-avatar-wrapper">
+                            <img src={user.avatar} alt={user.name} className="user-avatar" />
+                            {user.isOnline && <div className="online-indicator"></div>}
+                          </div>
+                          <div>
+                            <div className="user-name">{user.name}</div>
+                            <div className="user-id">{user.id}</div>
+                          </div>
                         </div>
                       </td>
                       <td className="user-email">{user.email}</td>
@@ -239,23 +261,17 @@ const UsersManagement = () => {
                           {user.role}
                         </span>
                       </td>
-                      <td className="join-date">{user.joinDate}</td>
-                      <td className="text-center">
-                        <span className={`status-badge ${user.status}`}>
-                          <span className="status-dot"></span>
-                          {user.status === 'active' ? 'Hoạt động' : user.status === 'inactive' ? 'Không hoạt động' : 'Bị khóa'}
-                        </span>
-                      </td>
+                      <td className="last-login">{user.lastLogin}</td>
                       <td className="text-right">
                         <div className="action-buttons">
-                          <button className="action-icon view">
-                            <span className="material-icons">visibility</span>
-                          </button>
                           <button className="action-icon edit">
                             <span className="material-icons">edit</span>
                           </button>
                           <button className="action-icon delete">
-                            <span className="material-icons">block</span>
+                            <span className="material-icons">delete</span>
+                          </button>
+                          <button className="action-icon more">
+                            <span className="material-icons">more_vert</span>
                           </button>
                         </div>
                       </td>
@@ -266,14 +282,16 @@ const UsersManagement = () => {
             </div>
 
             <div className="table-footer">
-              <p className="table-info">Hiển thị 1-4 trong số 12,845 người dùng</p>
+              <p className="table-info">Hiển thị 1-10 trên 1,284 người dùng</p>
               <div className="pagination">
-                <button className="page-btn" disabled>
+                <button className="page-btn">
                   <span className="material-icons">chevron_left</span>
                 </button>
                 <button className="page-btn active">1</button>
                 <button className="page-btn">2</button>
                 <button className="page-btn">3</button>
+                <span className="page-dots">...</span>
+                <button className="page-btn">128</button>
                 <button className="page-btn">
                   <span className="material-icons">chevron_right</span>
                 </button>
