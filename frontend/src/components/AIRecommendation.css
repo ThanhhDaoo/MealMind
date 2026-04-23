@@ -187,7 +187,6 @@
   backdrop-filter: blur(4px);
   border-radius: 1rem;
   padding: 1rem;
-  padding-right: 3rem;
   font-size: 1rem;
   transition: all 0.3s ease;
   outline: none;
@@ -201,6 +200,15 @@
 .form-group input:focus {
   border-color: rgba(0, 100, 0, 0.3);
   box-shadow: 0 0 0 3px rgba(0, 100, 0, 0.1);
+}
+
+.input-icon-left {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.25rem;
+  pointer-events: none;
 }
 
 .input-icon {

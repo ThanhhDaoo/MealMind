@@ -9,7 +9,6 @@ const FoodDetail = () => {
   const [food, setFood] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isFavorite, setIsFavorite] = useState(false)
-  const [activeTab, setActiveTab] = useState('ingredients')
 
   useEffect(() => {
     const fetchFood = async () => {
@@ -148,91 +147,93 @@ const FoodDetail = () => {
       {/* Main Content */}
       <div className="food-detail-content">
         <div className="main-content">
-          {/* Navigation Tabs */}
-          <div className="content-tabs">
-            <button 
-              className={`tab-btn ${activeTab === 'ingredients' ? 'active' : ''}`}
-              onClick={() => setActiveTab('ingredients')}
-            >
-              🥬 Nguyên liệu
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'instructions' ? 'active' : ''}`}
-              onClick={() => setActiveTab('instructions')}
-            >
-              📋 Các bước thực hiện
-            </button>
-          </div>
-
-          {/* Tab Content */}
-          {activeTab === 'ingredients' && (
-            <div className="ingredients-section">
-              <div className="ingredients-grid">
-                {food.ingredients?.map((ingredient, index) => (
-                  <div key={index} className="ingredient-item">
-                    <input type="checkbox" id={`ingredient-${index}`} />
-                    <label htmlFor={`ingredient-${index}`}>
-                      <span className="ingredient-name">{ingredient.name}</span>
-                      <span className="ingredient-amount">{ingredient.amount} {ingredient.unit}</span>
-                    </label>
-                  </div>
-                )) || [
-                  { name: '500g Thịt thăn bò Mỹ', amount: '', unit: '' },
-                  { name: 'Sốt đậu xanh', amount: '', unit: '' },
-                  { name: '3 lát Tỏi băm', amount: '', unit: '' },
-                  { name: '2 muỗng nước thần (Rosemary)', amount: '', unit: '' },
-                  { name: 'Muối dầu ăn Tiêu đen', amount: '', unit: '' },
-                  { name: '2 muỗng canh Dầu Oliu', amount: '', unit: '' }
-                ].map((ingredient, index) => (
-                  <div key={index} className="ingredient-item">
-                    <input type="checkbox" id={`ingredient-${index}`} />
-                    <label htmlFor={`ingredient-${index}`}>
-                      <span className="ingredient-name">{ingredient.name}</span>
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'instructions' && (
-            <div className="instructions-section">
-              {food.instructions?.map((step, index) => (
-                <div key={index} className="instruction-step">
-                  <div className="step-image">
-                    <img src={`/api/placeholder/80/80`} alt={`Bước ${index + 1}`} />
-                  </div>
-                  <div className="step-content">
-                    <h4>Bước {index + 1}: {step.title || `Chuẩn bị thịt`}</h4>
-                    <p>{step.description || step}</p>
-                  </div>
+          {/* Ingredients Section */}
+          <div className="ingredients-section">
+            <h2>
+              <span>🛒</span>
+              Nguyên liệu
+            </h2>
+            <div className="ingredients-grid">
+              {food.ingredients?.map((ingredient, index) => (
+                <div key={index} className="ingredient-item">
+                  <input type="checkbox" id={`ingredient-${index}`} />
+                  <label htmlFor={`ingredient-${index}`}>
+                    <span className="ingredient-name">{ingredient.name}</span>
+                    {ingredient.amount && ingredient.unit && (
+                      <span className="ingredient-amount">
+                        {ingredient.amount} {ingredient.unit}
+                      </span>
+                    )}
+                  </label>
                 </div>
               )) || [
-                {
-                  title: 'Chuẩn bị thịt',
-                  description: 'Lấy thịt bò ra để khỏi tủ lạnh 15 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thái thịt thành từng miếng vừa ăn, tẩm ướp với muối và tiêu đen.'
-                },
-                {
-                  title: 'Áp chảo',
-                  description: 'Làm nóng chảo với dầu olive đến khi bắt khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có màu nâu đẹp mắt.'
-                },
-                {
-                  title: 'Hoàn tất bò',
-                  description: 'Tắt bếp, thêm bơ tỏi đậu xanh và hương thảo. Dùng thìa tẩm nước thịt lên chảy đều để thịt mềm mịn và thơm hương.'
-                }
-              ].map((step, index) => (
-                <div key={index} className="instruction-step">
-                  <div className="step-image">
-                    <img src={`/api/placeholder/80/80`} alt={`Bước ${index + 1}`} />
-                  </div>
-                  <div className="step-content">
-                    <h4>Bước {index + 1}: {step.title}</h4>
-                    <p>{step.description}</p>
-                  </div>
+                { name: '500g Thịt thăn bò Mỹ', amount: 'Tươi', unit: '' },
+                { name: '50g Bơ lạt', amount: '', unit: '' },
+                { name: '3 tép Tỏi tươi', amount: '', unit: '' },
+                { name: '2 nhánh Hương thảo (Rosemary)', amount: '', unit: '' },
+                { name: 'Muối biển và Tiêu đen', amount: '', unit: '' },
+                { name: '2 muỗng canh Dầu Olive', amount: '', unit: '' }
+              ].map((ingredient, index) => (
+                <div key={index} className="ingredient-item">
+                  <input type="checkbox" id={`ingredient-${index}`} />
+                  <label htmlFor={`ingredient-${index}`}>
+                    <span className="ingredient-name">{ingredient.name}</span>
+                    {ingredient.amount && (
+                      <span className="ingredient-amount">{ingredient.amount}</span>
+                    )}
+                  </label>
                 </div>
               ))}
             </div>
-          )}
+          </div>
+
+          {/* Instructions Section */}
+          <div className="instructions-section">
+            <h2>
+              <span>📋</span>
+              Các bước thực hiện
+            </h2>
+            {food.instructions?.map((step, index) => (
+              <div key={index} className="instruction-step">
+                <div className="step-image">
+                  <img 
+                    src={step.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200'} 
+                    alt={`Bước ${index + 1}`} 
+                  />
+                </div>
+                <div className="step-content">
+                  <h4>Bước {index + 1}: {step.title}</h4>
+                  <p>{step.description}</p>
+                </div>
+              </div>
+            )) || [
+              {
+                title: 'Chuẩn bị thịt',
+                description: 'Lấy thịt bò ra khỏi tủ lạnh ít nhất 30 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thấm khô thịt bằng khăn giấy và ướp muối, tiêu đều hai mặt.',
+                image: 'https://images.unsplash.com/photo-1588347818036-8fc5e6d9e0e8?w=200'
+              },
+              {
+                title: 'Áp chảo',
+                description: 'Làm nóng chảo với dầu olive đến khi bốc khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có lớp vỏ màu nâu đẹp mắt.',
+                image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=200'
+              },
+              {
+                title: 'Rưới sốt bơ tỏi',
+                description: 'Hạ lửa, thêm bơ, tỏi đập dập và hương thảo. Dùng thìa liên tục rưới bơ tan chảy lên miếng thịt trong 2 phút cuối để thịt mọng nước và thơm hương.',
+                image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200'
+              }
+            ].map((step, index) => (
+              <div key={index} className="instruction-step">
+                <div className="step-image">
+                  <img src={step.image} alt={`Bước ${index + 1}`} />
+                </div>
+                <div className="step-content">
+                  <h4>Bước {index + 1}: {step.title}</h4>
+                  <p>{step.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Sidebar */}
@@ -242,55 +243,61 @@ const FoodDetail = () => {
             <h3>📊 Giá trị dinh dưỡng</h3>
             <div className="nutrition-bars">
               <div className="nutrition-item">
-                <span className="nutrition-label">Protein</span>
-                <div className="nutrition-bar">
-                  <div className="nutrition-fill protein" style={{width: '70%'}}></div>
+                <div className="nutrition-label">
+                  <span>Protein</span>
+                  <span className="nutrition-value">{food.nutrition?.protein || 45}g</span>
                 </div>
-                <span className="nutrition-value">{food.nutrition?.protein || 40}g</span>
+                <div className="nutrition-bar">
+                  <div className="nutrition-fill protein" style={{width: '85%'}}></div>
+                </div>
               </div>
               <div className="nutrition-item">
-                <span className="nutrition-label">Carbs</span>
-                <div className="nutrition-bar">
-                  <div className="nutrition-fill carbs" style={{width: '50%'}}></div>
+                <div className="nutrition-label">
+                  <span>Fat</span>
+                  <span className="nutrition-value">{food.nutrition?.fat || 32}g</span>
                 </div>
-                <span className="nutrition-value">{food.nutrition?.carbs || 25}g</span>
+                <div className="nutrition-bar">
+                  <div className="nutrition-fill fat" style={{width: '60%'}}></div>
+                </div>
               </div>
               <div className="nutrition-item">
-                <span className="nutrition-label">Chất béo</span>
-                <div className="nutrition-bar">
-                  <div className="nutrition-fill fat" style={{width: '30%'}}></div>
+                <div className="nutrition-label">
+                  <span>Carbs</span>
+                  <span className="nutrition-value">{food.nutrition?.carbs || 8}g</span>
                 </div>
-                <span className="nutrition-value">{food.nutrition?.fat || 15}g</span>
+                <div className="nutrition-bar">
+                  <div className="nutrition-fill carbs" style={{width: '15%'}}></div>
+                </div>
               </div>
             </div>
             <p className="nutrition-note">
-              Chúng tôi tính toán dinh dưỡng dựa trên 1 người ăn
+              * Giá trị dựa trên khẩu phần 1 người ăn.
             </p>
           </div>
 
           {/* Recommended Dishes */}
           <div className="recommended-card">
-            <h3>🍽️ Gợi ý kèm theo</h3>
+            <h3>🍷 Gợi ý kèm theo</h3>
             <div className="recommended-list">
               <div className="recommended-item">
-                <img src="/api/placeholder/50/50" alt="Bánh mì nướng" />
+                <img src="https://images.unsplash.com/photo-1585238341710-4a1b0d2d1b5f?w=100" alt="Khoai tây nghiền" />
                 <div>
-                  <h5>Bánh mì nướng</h5>
-                  <p>Bánh mì - Sáng sớm</p>
+                  <h5>Khoai tây nghiền</h5>
+                  <p>Mềm mịn, béo ngậy</p>
                 </div>
               </div>
               <div className="recommended-item">
-                <img src="/api/placeholder/50/50" alt="Salad xanh" />
+                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100" alt="Salad vườn" />
                 <div>
-                  <h5>Salad xanh</h5>
-                  <p>Rau củ - Trưa</p>
+                  <h5>Salad vườn</h5>
+                  <p>Tươi mát, thanh đạm</p>
                 </div>
               </div>
               <div className="recommended-item">
-                <img src="/api/placeholder/50/50" alt="Vang đỏ Merlot" />
+                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=100" alt="Vang đỏ Merlot" />
                 <div>
                   <h5>Vang đỏ Merlot</h5>
-                  <p>Đồ uống - Tối</p>
+                  <p>Cân bằng vị đậm đà</p>
                 </div>
               </div>
             </div>
@@ -300,12 +307,11 @@ const FoodDetail = () => {
           <div className="ai-assistant-card">
             <div className="ai-header">
               <span className="ai-icon">🤖</span>
-              <span>MealMind AI trợ lý</span>
+              <span>MealMind AI nói:</span>
             </div>
             <p>
-              Bạn có muốn tôi gợi ý thêm các món ăn khác phù hợp với khẩu vị và chế độ dinh dưỡng của bạn không?
+              "Món này chứa nhiều đạm và sắt, rất tốt cho việc phục hồi cơ bắp sau khi tập luyện. Hãy thử ăn kèm măng tây nướng để tăng thêm chất xơ nhé!"
             </p>
-            <button className="ai-chat-btn">Trò chuyện với AI</button>
           </div>
         </div>
       </div>

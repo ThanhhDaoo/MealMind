@@ -63,9 +63,14 @@ const Navbar = () => {
           </li>
         </ul>
         
-        <Link to="/" className="cta-primary">
-          Gợi ý ngay
-        </Link>
+        <div className="nav-actions">
+          <Link to="/ai-recommendation" className="cta-primary">
+            Gợi ý ngay
+          </Link>
+          <Link to="/login" className="user-icon-link" title="Đăng nhập">
+            <span className="user-icon">👤</span>
+          </Link>
+        </div>
       </div>
     </nav>
   )
