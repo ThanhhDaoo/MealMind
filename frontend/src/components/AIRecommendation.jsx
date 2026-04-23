@@ -54,11 +54,10 @@ const AIRecommendation = () => {
               <div className="input-container">
                 <input
                   type="text"
-                  placeholder="Thịt bò, cà chua, hành tây, măng tây..."
+                  placeholder="bò, cà chua, hành tây, măng tây..."
                   value={userInput.ingredients}
                   onChange={(e) => setUserInput({...userInput, ingredients: e.target.value})}
                 />
-                <span className="input-icon">📦</span>
               </div>
             </div>
 
@@ -72,7 +71,6 @@ const AIRecommendation = () => {
                     value={userInput.dietaryRestrictions}
                     onChange={(e) => setUserInput({...userInput, dietaryRestrictions: e.target.value})}
                   />
-                  <span className="input-icon">⚡</span>
                 </div>
               </div>
 
