@@ -1,11 +1,26 @@
 package com.mealapp.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "foods")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Food {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -13,93 +28,95 @@ public class Food {
     @Column(nullable = false)
     private String name;
     
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "NVARCHAR(MAX)")
     private String description;
     
+    @Column(length = 500)
     private String image;
+    
     private Integer calories;
+    
+    @Column(name = "prep_time")
     private Integer prepTime;
-    private String difficulty;
+    
+    @Column(name = "cook_time")
+    private Integer cookTime;
+    
+    @Column(name = "total_time")
+    private Integer totalTime;
+    
+    private Integer servings = 1;
+    
+    @Column(length = 50)
+    private String difficulty; // Easy, Medium, Hard
+    
+    @Column(length = 100)
     private String category;
     
-    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Ingredient> ingredients;
+    @Column(length = 100)
+    private String cuisine;
     
-    @ElementCollection
-    @CollectionTable(name = "food_instructions", joinColumns = @JoinColumn(name = "food_id"))
-    @Column(name = "instruction")
-    private List<String> instructions;
+    @Column(name = "meal_type", length = 50)
+    private String mealType;
     
-    @Embedded
-    private Nutrition nutrition;
+    @Column(name = "diet_type", length = 100)
+    private String dietType;
     
-    // Constructors
-    public Food() {}
-    
-    public Food(String name, String description, String image, Integer calories, Integer prepTime, String difficulty, String category) {
-        this.name = name;
-        this.description = description;
-        this.image = image;
-        this.calories = calories;
-        this.prepTime = prepTime;
-        this.difficulty = difficulty;
-        this.category = category;
-    }
-    
-    // Getters and Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
-    
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
-    
-    public Integer getCalories() { return calories; }
-    public void setCalories(Integer calories) { this.calories = calories; }
-    
-    public Integer getPrepTime() { return prepTime; }
-    public void setPrepTime(Integer prepTime) { this.prepTime = prepTime; }
-    
-    public String getDifficulty() { return difficulty; }
-    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
-    
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
-    
-    public List<Ingredient> getIngredients() { return ingredients; }
-    public void setIngredients(List<Ingredient> ingredients) { this.ingredients = ingredients; }
-    
-    public List<String> getInstructions() { return instructions; }
-    public void setInstructions(List<String> instructions) { this.instructions = instructions; }
-    
-    public Nutrition getNutrition() { return nutrition; }
-    public void setNutrition(Nutrition nutrition) { this.nutrition = nutrition; }
-}
-
-@Embeddable
-class Nutrition {
+    @Column(precision = 5, scale = 2)
     private Double protein;
+    
+    @Column(precision = 5, scale = 2)
     private Double carbs;
+    
+    @Column(precision = 5, scale = 2)
     private Double fat;
+    
+    @Column(precision = 5, scale = 2)
     private Double fiber;
     
-    // Constructors, getters and setters
-    public Nutrition() {}
+    @Column(precision = 5, scale = 2)
+    private Double sugar;
     
-    public Double getProtein() { return protein; }
-    public void setProtein(Double protein) { this.protein = protein; }
+    @Column(precision = 5, scale = 2)
+    private Double sodium;
     
-    public Double getCarbs() { return carbs; }
-    public void setCarbs(Double carbs) { this.carbs = carbs; }
+    @Column(precision = 3, scale = 2)
+    private Double rating = 0.0;
     
-    public Double getFat() { return fat; }
-    public void setFat(Double fat) { this.fat = fat; }
+    @Column(name = "rating_count")
+    private Integer ratingCount = 0;
     
-    public Double getFiber() { return fiber; }
-    public void setFiber(Double fiber) { this.fiber = fiber; }
+    @Column(name = "view_count")
+    private Integer viewCount = 0;
+    
+    @Column(name = "favorite_count")
+    private Integer favoriteCount = 0;
+    
+    @Column(length = 50)
+    private String status = "PUBLISHED"; // DRAFT, PUBLISHED, ARCHIVED
+    
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+    
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    // Relationships
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Ingredient> ingredients = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<FoodInstruction> instructions = new ArrayList<>();
+    
+    @ManyToMany(mappedBy = "favoriteFoods")
+    @JsonIgnore
+    private Set<User> favoritedByUsers = new HashSet<>();
 }

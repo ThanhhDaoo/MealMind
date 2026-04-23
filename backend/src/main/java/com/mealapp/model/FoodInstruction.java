@@ -7,27 +7,24 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "ingredients")
+@Table(name = "food_instructions")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Ingredient {
+public class FoodInstruction {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(nullable = false)
-    private String name;
-    
-    @Column(length = 100)
-    private String amount;
-    
-    @Column(length = 50)
-    private String unit;
-    
     @ManyToOne
     @JoinColumn(name = "food_id")
     @JsonIgnore
     private Food food;
+    
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
+    private String instruction;
+    
+    @Column(name = "step_order")
+    private Integer stepOrder;
 }
