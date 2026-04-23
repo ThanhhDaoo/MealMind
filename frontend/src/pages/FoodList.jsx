@@ -160,8 +160,28 @@ const FoodList = () => {
             </h3>
             <div className="filter-options">
               <label className="checkbox-label">
-                <input type="checkbox" />
+                <input 
+                  type="checkbox" 
+                  checked={dietType === 'all'}
+                  onChange={() => setDietType(dietType === 'all' ? '' : 'all')}
+                />
                 <span>Tất cả chế độ</span>
+              </label>
+              <label className="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  checked={dietType === 'vegetarian'}
+                  onChange={() => setDietType(dietType === 'vegetarian' ? '' : 'vegetarian')}
+                />
+                <span>Chay</span>
+              </label>
+              <label className="checkbox-label">
+                <input 
+                  type="checkbox" 
+                  checked={dietType === 'keto'}
+                  onChange={() => setDietType(dietType === 'keto' ? '' : 'keto')}
+                />
+                <span>Keto</span>
               </label>
             </div>
           </div>
