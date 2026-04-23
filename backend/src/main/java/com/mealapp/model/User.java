@@ -50,10 +50,8 @@ public class User {
     @Column(length = 20)
     private String gender;
     
-    @Column(precision = 5, scale = 2)
     private Double height;
     
-    @Column(precision = 5, scale = 2)
     private Double weight;
     
     @Column(name = "activity_level", length = 50)

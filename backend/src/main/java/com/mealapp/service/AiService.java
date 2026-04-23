@@ -1,6 +1,6 @@
 package com.mealapp.service;
 
-import com.mealapp.controller.MealPlanGenerationRequest;
+import com.mealapp.dto.MealPlanGenerationRequest;
 import com.mealapp.model.Food;
 import com.mealapp.model.MealPlan;
 import com.mealapp.model.MealPlanItem;
@@ -25,7 +25,8 @@ public class AiService {
     public MealPlan generateMealPlan(User user, MealPlanGenerationRequest request) {
         MealPlan mealPlan = new MealPlan();
         mealPlan.setName("AI Generated Plan - " + request.getDate());
-        mealPlan.setDate(request.getDate());
+        mealPlan.setWeekStartDate(request.getDate());
+        mealPlan.setWeekEndDate(request.getDate().plusDays(6));
         mealPlan.setUser(user);
         
         List<MealPlanItem> mealItems = new ArrayList<>();
@@ -37,7 +38,7 @@ public class AiService {
         List<Food> breakfastFoods = getRandomFoods(allFoods, 2);
         for (Food food : breakfastFoods) {
             MealPlanItem item = new MealPlanItem();
-            item.setMealType(MealType.BREAKFAST);
+            item.setMealType("BREAKFAST");
             item.setFood(food);
             item.setMealPlan(mealPlan);
             mealItems.add(item);
@@ -47,7 +48,7 @@ public class AiService {
         List<Food> lunchFoods = getRandomFoods(allFoods, 3);
         for (Food food : lunchFoods) {
             MealPlanItem item = new MealPlanItem();
-            item.setMealType(MealType.LUNCH);
+            item.setMealType("LUNCH");
             item.setFood(food);
             item.setMealPlan(mealPlan);
             mealItems.add(item);
@@ -57,13 +58,13 @@ public class AiService {
         List<Food> dinnerFoods = getRandomFoods(allFoods, 3);
         for (Food food : dinnerFoods) {
             MealPlanItem item = new MealPlanItem();
-            item.setMealType(MealType.DINNER);
+            item.setMealType("DINNER");
             item.setFood(food);
             item.setMealPlan(mealPlan);
             mealItems.add(item);
         }
         
-        mealPlan.setMealItems(mealItems);
+        mealPlan.setItems(mealItems);
         
         // Calculate total calories
         int totalCalories = mealItems.stream()

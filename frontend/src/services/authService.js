@@ -4,23 +4,27 @@ export const authService = {
   // Login user
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password })
-    const { token, user } = response.data
+    const { token, id, name, email: userEmail, role } = response.data
+    
+    const user = { id, name, email: userEmail, role }
     
     localStorage.setItem('authToken', token)
     localStorage.setItem('user', JSON.stringify(user))
     
-    return response.data
+    return user
   },
 
   // Register new user
   register: async (name, email, password) => {
     const response = await api.post('/auth/register', { name, email, password })
-    const { token, user } = response.data
+    const { token, id, name: userName, email: userEmail, role } = response.data
+    
+    const user = { id, name: userName, email: userEmail, role }
     
     localStorage.setItem('authToken', token)
     localStorage.setItem('user', JSON.stringify(user))
     
-    return response.data
+    return user
   },
 
   // Logout user

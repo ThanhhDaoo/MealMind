@@ -1,6 +1,6 @@
 package com.mealapp.service;
 
-import com.mealapp.controller.MealPlanGenerationRequest;
+import com.mealapp.dto.MealPlanGenerationRequest;
 import com.mealapp.model.MealPlan;
 import com.mealapp.model.User;
 import com.mealapp.repository.MealPlanRepository;
@@ -27,7 +27,7 @@ public class MealPlanService {
     
     // Get meal plans by user and date
     public List<MealPlan> getMealPlansByDate(Long userId, LocalDate date) {
-        return mealPlanRepository.findByUserIdAndDate(userId, date);
+        return mealPlanRepository.findByUserIdAndWeekStartDate(userId, date);
     }
     
     // Get meal plan by ID
@@ -62,7 +62,8 @@ public class MealPlanService {
         MealPlan mealPlan = getMealPlanById(id);
         
         mealPlan.setName(mealPlanDetails.getName());
-        mealPlan.setDate(mealPlanDetails.getDate());
+        mealPlan.setWeekStartDate(mealPlanDetails.getWeekStartDate());
+        mealPlan.setWeekEndDate(mealPlanDetails.getWeekEndDate());
         mealPlan.setTotalCalories(mealPlanDetails.getTotalCalories());
         
         return mealPlanRepository.save(mealPlan);
@@ -76,17 +77,17 @@ public class MealPlanService {
     
     // Get meal plan history
     public Page<MealPlan> getMealPlanHistory(Long userId, Pageable pageable) {
-        return mealPlanRepository.findByUserIdOrderByDateDesc(userId, pageable);
+        return mealPlanRepository.findByUserIdOrderByWeekStartDateDesc(userId, pageable);
     }
     
     // Get meal plans by date range
     public List<MealPlan> getMealPlansByDateRange(Long userId, LocalDate startDate, LocalDate endDate) {
-        return mealPlanRepository.findByUserIdAndDateBetween(userId, startDate, endDate);
+        return mealPlanRepository.findByUserIdAndWeekStartDateBetween(userId, startDate, endDate);
     }
     
     // Calculate total calories for meal plan
     public Integer calculateTotalCalories(MealPlan mealPlan) {
-        return mealPlan.getMealItems().stream()
+        return mealPlan.getItems().stream()
                 .mapToInt(item -> item.getFood().getCalories() * item.getServings())
                 .sum();
     }

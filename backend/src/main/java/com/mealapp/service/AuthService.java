@@ -1,11 +1,15 @@
 package com.mealapp.service;
 
-import com.mealapp.controller.AuthResponse;
+import com.mealapp.dto.AuthResponse;
 import com.mealapp.model.User;
 import com.mealapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
 
 @Service
 public class AuthService {
@@ -28,7 +32,13 @@ public class AuthService {
             throw new RuntimeException("Invalid password");
         }
         
-        String token = jwtService.generateToken(user);
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+        );
+        
+        String token = jwtService.generateToken(userDetails);
         return new AuthResponse(token, user);
     }
     
@@ -42,26 +52,40 @@ public class AuthService {
         user.setName(name);
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
+        user.setRole("USER");
         
         User savedUser = userRepository.save(user);
-        String token = jwtService.generateToken(savedUser);
+        
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                savedUser.getEmail(),
+                savedUser.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + savedUser.getRole()))
+        );
+        
+        String token = jwtService.generateToken(userDetails);
         
         return new AuthResponse(token, savedUser);
     }
     
     // Refresh token
     public AuthResponse refreshToken(String token) {
-        String email = jwtService.extractEmail(token.replace("Bearer ", ""));
+        String email = jwtService.extractUsername(token.replace("Bearer ", ""));
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        String newToken = jwtService.generateToken(user);
+        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
+                user.getPassword(),
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole()))
+        );
+        
+        String newToken = jwtService.generateToken(userDetails);
         return new AuthResponse(newToken, user);
     }
     
     // Get current user
     public User getCurrentUser(String token) {
-        String email = jwtService.extractEmail(token.replace("Bearer ", ""));
+        String email = jwtService.extractUsername(token.replace("Bearer ", ""));
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }

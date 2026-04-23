@@ -62,25 +62,18 @@ public class Food {
     @Column(name = "diet_type", length = 100)
     private String dietType;
     
-    @Column(precision = 5, scale = 2)
     private Double protein;
     
-    @Column(precision = 5, scale = 2)
     private Double carbs;
     
-    @Column(precision = 5, scale = 2)
     private Double fat;
     
-    @Column(precision = 5, scale = 2)
     private Double fiber;
     
-    @Column(precision = 5, scale = 2)
     private Double sugar;
     
-    @Column(precision = 5, scale = 2)
     private Double sodium;
     
-    @Column(precision = 3, scale = 2)
     private Double rating = 0.0;
     
     @Column(name = "rating_count")

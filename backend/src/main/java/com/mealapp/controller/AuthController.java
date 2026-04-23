@@ -1,5 +1,9 @@
 package com.mealapp.controller;
 
+import com.mealapp.dto.AuthResponse;
+import com.mealapp.dto.ChangePasswordRequest;
+import com.mealapp.dto.LoginRequest;
+import com.mealapp.dto.RegisterRequest;
 import com.mealapp.model.User;
 import com.mealapp.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
     
     @Autowired
@@ -55,58 +59,4 @@ public class AuthController {
         authService.changePassword(token, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok("Password changed successfully");
     }
-}
-
-// DTOs
-class LoginRequest {
-    private String email;
-    private String password;
-    
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-}
-
-class RegisterRequest {
-    private String name;
-    private String email;
-    private String password;
-    
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-}
-
-class ChangePasswordRequest {
-    private String currentPassword;
-    private String newPassword;
-    
-    public String getCurrentPassword() { return currentPassword; }
-    public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
-    
-    public String getNewPassword() { return newPassword; }
-    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
-}
-
-class AuthResponse {
-    private String token;
-    private User user;
-    
-    public AuthResponse(String token, User user) {
-        this.token = token;
-        this.user = user;
-    }
-    
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
-    
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
 }

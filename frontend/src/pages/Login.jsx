@@ -41,11 +41,17 @@ const Login = () => {
     setLoading(true)
 
     try {
+      let response
       if (isLogin) {
-        await authService.login(formData.email, formData.password)
-        navigate('/')
+        response = await authService.login(formData.email, formData.password)
       } else {
-        await authService.register(formData.name, formData.email, formData.password)
+        response = await authService.register(formData.name, formData.email, formData.password)
+      }
+      
+      // Redirect based on user role
+      if (response && response.role === 'ADMIN') {
+        navigate('/admin')
+      } else {
         navigate('/')
       }
     } catch (error) {

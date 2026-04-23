@@ -1,87 +1,209 @@
 package com.mealapp.service;
 
+import com.mealapp.dto.FoodDTO;
+import com.mealapp.dto.IngredientDTO;
+import com.mealapp.dto.InstructionDTO;
 import com.mealapp.model.Food;
+import com.mealapp.model.FoodInstruction;
+import com.mealapp.model.Ingredient;
+import com.mealapp.repository.FoodInstructionRepository;
 import com.mealapp.repository.FoodRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import com.mealapp.repository.IngredientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class FoodService {
-    
-    @Autowired
-    private FoodRepository foodRepository;
-    
-    // Get all foods with filters
-    public Page<Food> getAllFoods(String category, String search, Integer maxCalories, 
-                                  Integer maxPrepTime, String difficulty, Pageable pageable) {
-        if (search != null && !search.isEmpty()) {
-            return foodRepository.searchFoods(search, pageable);
-        }
-        return foodRepository.findFoodsWithFilters(category, maxCalories, maxPrepTime, difficulty, pageable);
+
+    private final FoodRepository foodRepository;
+    private final IngredientRepository ingredientRepository;
+    private final FoodInstructionRepository instructionRepository;
+
+    public List<FoodDTO> getAllFoods() {
+        return foodRepository.findByStatus("PUBLISHED")
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
-    
-    // Get featured foods
-    public List<Food> getFeaturedFoods() {
-        Pageable pageable = PageRequest.of(0, 6); // Get top 6 featured foods
-        return foodRepository.findFeaturedFoods(pageable);
-    }
-    
-    // Get food by ID
-    public Food getFoodById(Long id) {
-        return foodRepository.findById(id)
+
+    public FoodDTO getFoodById(Long id) {
+        Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Food not found with id: " + id));
-    }
-    
-    // Search foods
-    public Page<Food> searchFoods(String query, Pageable pageable) {
-        return foodRepository.searchFoods(query, pageable);
-    }
-    
-    // Get foods by category
-    public List<Food> getFoodsByCategory(String category) {
-        return foodRepository.findByCategory(category);
-    }
-    
-    // Create new food
-    public Food createFood(Food food) {
-        return foodRepository.save(food);
-    }
-    
-    // Update food
-    public Food updateFood(Long id, Food foodDetails) {
-        Food food = getFoodById(id);
         
-        food.setName(foodDetails.getName());
-        food.setDescription(foodDetails.getDescription());
-        food.setImage(foodDetails.getImage());
-        food.setCalories(foodDetails.getCalories());
-        food.setPrepTime(foodDetails.getPrepTime());
-        food.setDifficulty(foodDetails.getDifficulty());
-        food.setCategory(foodDetails.getCategory());
-        food.setInstructions(foodDetails.getInstructions());
-        food.setNutrition(foodDetails.getNutrition());
+        // Increment view count
+        food.setViewCount(food.getViewCount() + 1);
+        foodRepository.save(food);
         
-        return foodRepository.save(food);
+        return convertToDetailDTO(food);
     }
-    
-    // Delete food
+
+    public List<FoodDTO> getFoodsByCategory(String category) {
+        return foodRepository.findByCategoryAndStatus(category, "PUBLISHED")
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<FoodDTO> searchFoods(String keyword) {
+        return foodRepository.findByNameContainingIgnoreCase(keyword)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<FoodDTO> getTopRatedFoods() {
+        return foodRepository.findTopRatedFoods()
+                .stream()
+                .limit(10)
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<String> getAllCategories() {
+        return foodRepository.findAllCategories();
+    }
+
+    @Transactional
+    public FoodDTO createFood(FoodDTO foodDTO) {
+        Food food = convertToEntity(foodDTO);
+        food.setStatus("PUBLISHED");
+        Food savedFood = foodRepository.save(food);
+        
+        // Save ingredients
+        if (foodDTO.getIngredients() != null) {
+            for (IngredientDTO ingredientDTO : foodDTO.getIngredients()) {
+                Ingredient ingredient = new Ingredient();
+                ingredient.setName(ingredientDTO.getName());
+                ingredient.setAmount(ingredientDTO.getAmount());
+                ingredient.setUnit(ingredientDTO.getUnit());
+                ingredient.setFood(savedFood);
+                ingredientRepository.save(ingredient);
+            }
+        }
+        
+        // Save instructions
+        if (foodDTO.getInstructions() != null) {
+            for (InstructionDTO instructionDTO : foodDTO.getInstructions()) {
+                FoodInstruction instruction = new FoodInstruction();
+                instruction.setInstruction(instructionDTO.getInstruction());
+                instruction.setStepOrder(instructionDTO.getStepOrder());
+                instruction.setFood(savedFood);
+                instructionRepository.save(instruction);
+            }
+        }
+        
+        return convertToDetailDTO(savedFood);
+    }
+
+    @Transactional
+    public FoodDTO updateFood(Long id, FoodDTO foodDTO) {
+        Food food = foodRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Food not found with id: " + id));
+        
+        updateFoodFromDTO(food, foodDTO);
+        Food updatedFood = foodRepository.save(food);
+        
+        return convertToDetailDTO(updatedFood);
+    }
+
+    @Transactional
     public void deleteFood(Long id) {
-        Food food = getFoodById(id);
-        foodRepository.delete(food);
+        foodRepository.deleteById(id);
     }
-    
-    // Get foods by calories range
-    public List<Food> getFoodsByCaloriesRange(Integer minCalories, Integer maxCalories) {
-        return foodRepository.findByCaloriesBetween(minCalories, maxCalories);
+
+    private FoodDTO convertToDTO(Food food) {
+        FoodDTO dto = new FoodDTO();
+        dto.setId(food.getId());
+        dto.setName(food.getName());
+        dto.setDescription(food.getDescription());
+        dto.setImage(food.getImage());
+        dto.setCalories(food.getCalories());
+        dto.setPrepTime(food.getPrepTime());
+        dto.setCookTime(food.getCookTime());
+        dto.setTotalTime(food.getTotalTime());
+        dto.setServings(food.getServings());
+        dto.setDifficulty(food.getDifficulty());
+        dto.setCategory(food.getCategory());
+        dto.setCuisine(food.getCuisine());
+        dto.setMealType(food.getMealType());
+        dto.setDietType(food.getDietType());
+        dto.setProtein(food.getProtein());
+        dto.setCarbs(food.getCarbs());
+        dto.setFat(food.getFat());
+        dto.setFiber(food.getFiber());
+        dto.setSugar(food.getSugar());
+        dto.setSodium(food.getSodium());
+        dto.setRating(food.getRating());
+        dto.setRatingCount(food.getRatingCount());
+        dto.setViewCount(food.getViewCount());
+        dto.setFavoriteCount(food.getFavoriteCount());
+        dto.setStatus(food.getStatus());
+        return dto;
     }
-    
-    // Get quick foods (prep time <= 30 minutes)
-    public List<Food> getQuickFoods() {
-        return foodRepository.findByPrepTimeLessThanEqual(30);
+
+    private FoodDTO convertToDetailDTO(Food food) {
+        FoodDTO dto = convertToDTO(food);
+        
+        // Add ingredients
+        List<IngredientDTO> ingredients = ingredientRepository.findByFoodId(food.getId())
+                .stream()
+                .map(ing -> {
+                    IngredientDTO ingDTO = new IngredientDTO();
+                    ingDTO.setId(ing.getId());
+                    ingDTO.setName(ing.getName());
+                    ingDTO.setAmount(ing.getAmount());
+                    ingDTO.setUnit(ing.getUnit());
+                    return ingDTO;
+                })
+                .collect(Collectors.toList());
+        dto.setIngredients(ingredients);
+        
+        // Add instructions
+        List<InstructionDTO> instructions = instructionRepository.findByFoodIdOrderByStepOrderAsc(food.getId())
+                .stream()
+                .map(inst -> {
+                    InstructionDTO instDTO = new InstructionDTO();
+                    instDTO.setId(inst.getId());
+                    instDTO.setInstruction(inst.getInstruction());
+                    instDTO.setStepOrder(inst.getStepOrder());
+                    return instDTO;
+                })
+                .collect(Collectors.toList());
+        dto.setInstructions(instructions);
+        
+        return dto;
+    }
+
+    private Food convertToEntity(FoodDTO dto) {
+        Food food = new Food();
+        updateFoodFromDTO(food, dto);
+        return food;
+    }
+
+    private void updateFoodFromDTO(Food food, FoodDTO dto) {
+        food.setName(dto.getName());
+        food.setDescription(dto.getDescription());
+        food.setImage(dto.getImage());
+        food.setCalories(dto.getCalories());
+        food.setPrepTime(dto.getPrepTime());
+        food.setCookTime(dto.getCookTime());
+        food.setTotalTime(dto.getTotalTime());
+        food.setServings(dto.getServings());
+        food.setDifficulty(dto.getDifficulty());
+        food.setCategory(dto.getCategory());
+        food.setCuisine(dto.getCuisine());
+        food.setMealType(dto.getMealType());
+        food.setDietType(dto.getDietType());
+        food.setProtein(dto.getProtein());
+        food.setCarbs(dto.getCarbs());
+        food.setFat(dto.getFat());
+        food.setFiber(dto.getFiber());
+        food.setSugar(dto.getSugar());
+        food.setSodium(dto.getSodium());
     }
 }
