@@ -123,11 +123,11 @@ const FoodDetail = () => {
           <div className="food-meta">
             <div className="meta-item">
               <i className="fas fa-clock"></i>
-              <span>{food.prepTime || food.totalTime || 30} phút</span>
+              <span>{food.totalTime || food.prepTime || 30} phút</span>
             </div>
             <div className="meta-item">
               <i className="fas fa-users"></i>
-              <span>{food.servings || 'Trung bình'} khẩu phần</span>
+              <span>{food.servings || 2} khẩu phần</span>
             </div>
             <div className="meta-item">
               <i className="fas fa-fire"></i>
@@ -167,15 +167,15 @@ const FoodDetail = () => {
               {food.ingredients && food.ingredients.length > 0 ? (
                 food.ingredients.map((ingredient, index) => (
                   <div key={index} className="ingredient-item">
-                    <input type="checkbox" id={`ingredient-${index}`} />
-                    <label htmlFor={`ingredient-${index}`}>
+                    <span className="ingredient-bullet">•</span>
+                    <div className="ingredient-content">
                       <span className="ingredient-name">{ingredient.name}</span>
                       {ingredient.amount && ingredient.unit && (
                         <span className="ingredient-amount">
                           {ingredient.amount} {ingredient.unit}
                         </span>
                       )}
-                    </label>
+                    </div>
                   </div>
                 ))
               ) : (
@@ -189,13 +189,13 @@ const FoodDetail = () => {
                   { name: '2 muỗng canh Dầu Olive', amount: '', unit: '' }
                 ].map((ingredient, index) => (
                   <div key={index} className="ingredient-item">
-                    <input type="checkbox" id={`ingredient-${index}`} />
-                    <label htmlFor={`ingredient-${index}`}>
+                    <span className="ingredient-bullet">•</span>
+                    <div className="ingredient-content">
                       <span className="ingredient-name">{ingredient.name}</span>
                       {ingredient.amount && (
                         <span className="ingredient-amount">{ingredient.amount}</span>
                       )}
-                    </label>
+                    </div>
                   </div>
                 ))
               )}
@@ -296,21 +296,21 @@ const FoodDetail = () => {
             <h3>🍷 Gợi ý kèm theo</h3>
             <div className="recommended-list">
               <div className="recommended-item">
-                <img src="https://images.unsplash.com/photo-1585238341710-4a1b0d2d1b5f?w=100" alt="Khoai tây nghiền" />
+                <img src="https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=100&h=100&fit=crop" alt="Khoai tây nghiền" />
                 <div>
                   <h5>Khoai tây nghiền</h5>
                   <p>Mềm mịn, béo ngậy</p>
                 </div>
               </div>
               <div className="recommended-item">
-                <img src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100" alt="Salad vườn" />
+                <img src="https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=100&h=100&fit=crop" alt="Salad vườn" />
                 <div>
                   <h5>Salad vườn</h5>
                   <p>Tươi mát, thanh đạm</p>
                 </div>
               </div>
               <div className="recommended-item">
-                <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=100" alt="Vang đỏ Merlot" />
+                <img src="https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=100&h=100&fit=crop" alt="Vang đỏ Merlot" />
                 <div>
                   <h5>Vang đỏ Merlot</h5>
                   <p>Cân bằng vị đậm đà</p>

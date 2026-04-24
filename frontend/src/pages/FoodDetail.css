@@ -12,7 +12,7 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0.5rem 2rem 0;
-  background: #f9f9f9;
+  background: transparent;
 }
 
 .glass-card {
@@ -66,6 +66,7 @@ body {
   gap: 3rem;
   margin-bottom: 0.5rem;
   align-items: center;
+  background: transparent;
 }
 
 .food-image-container {
@@ -76,17 +77,7 @@ body {
   width: 100%;
   box-shadow: 0 20px 60px rgba(0, 128, 0, 0.15);
   transition: all 0.3s ease;
-}
-
-.food-image-container::before {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 28px;
-  background: linear-gradient(45deg, #008000, #8dfb77);
-  z-index: -1;
-  opacity: 0.2;
-  filter: blur(8px);
+  background: transparent;
 }
 
 .food-detail-image {
@@ -133,9 +124,16 @@ body {
   gap: 1.5rem;
 }
 
+.food-category {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .category-tag {
-  background: rgba(255, 255, 255, 0.8);
-  color: #006400;
+  background: rgba(255, 255, 255, 0.95);
+  color: #00A86B;
   padding: 0.5rem 1rem;
   border-radius: 25px;
   font-size: 12px;
@@ -146,7 +144,7 @@ body {
   align-items: center;
   gap: 0.5rem;
   width: fit-content;
-  border: 1px solid rgba(0, 128, 0, 0.2);
+  border: 2px solid #00A86B;
   backdrop-filter: blur(10px);
 }
 
@@ -154,7 +152,7 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 3rem;
   font-weight: 700;
-  color: #006400;
+  color: #00A86B;
   margin: 0;
   line-height: 1.2;
 }
@@ -175,7 +173,7 @@ body {
 }
 
 .meta-item i {
-  color: #006400;
+  color: #00A86B;
   font-size: 20px;
 }
 
@@ -194,7 +192,7 @@ body {
 }
 
 .add-to-plan-btn {
-  background: #006400;
+  background: #00A86B;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -206,13 +204,13 @@ body {
   align-items: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 0 15px rgba(0, 128, 0, 0.3);
+  box-shadow: 0 0 15px rgba(0, 168, 107, 0.3);
 }
 
 .add-to-plan-btn:hover {
-  background: #004d00;
+  background: #008f5c;
   transform: scale(1.05);
-  box-shadow: 0 0 25px rgba(0, 128, 0, 0.4);
+  box-shadow: 0 0 25px rgba(0, 168, 107, 0.4);
 }
 
 .add-to-plan-btn:active {
@@ -231,7 +229,7 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #006400;
+  color: #00A86B;
   font-size: 24px;
 }
 
@@ -254,6 +252,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 1rem;
+  align-items: start;
 }
 
 .main-content {
@@ -265,11 +264,11 @@ body {
 /* Ingredients & Instructions Cards */
 .ingredients-section,
 .instructions-section {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(0, 128, 0, 0.05);
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 8px 32px 0 rgba(0, 128, 0, 0.1);
   border-radius: 16px;
   padding: 1rem;
 }
@@ -279,7 +278,7 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 2rem;
   font-weight: 700;
-  color: #006400;
+  color: #00A86B;
   margin: 0 0 1.5rem 0;
   display: flex;
   align-items: center;
@@ -294,33 +293,39 @@ body {
 /* Ingredients Section */
 .ingredients-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
 }
 
 .ingredient-item {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid #e8e8e8;
+  background: #ffffff;
   transition: all 0.3s ease;
-  cursor: pointer;
+}
+
+.ingredient-bullet {
+  color: #00A86B;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: bold;
+}
+
+.ingredient-content {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .ingredient-item:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #f8f8f8;
   transform: translateX(4px);
-}
-
-.ingredient-item input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  accent-color: #006400;
-  cursor: pointer;
-  border-radius: 4px;
+  border-color: #00A86B;
 }
 
 .ingredient-item label {
@@ -350,19 +355,21 @@ body {
 
 .instruction-step {
   display: flex;
-  gap: 1.5rem;
-  margin-bottom: 1.5rem;
-  padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.3);
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #ffffff;
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1.5px solid #e8e8e8;
   transition: all 0.3s ease;
 }
 
 .instruction-step:hover {
-  background: rgba(255, 255, 255, 0.4);
+  background: #f8f8f8;
   transform: translateX(4px);
+  border-color: #00A86B;
 }
 
 .instruction-step:last-child {
@@ -370,12 +377,7 @@ body {
 }
 
 .step-image {
-  flex-shrink: 0;
-  width: 128px;
-  height: 128px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: none;
 }
 
 .step-image img {
@@ -406,23 +408,24 @@ body {
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
+  height: fit-content;
 }
 
 .nutrition-card,
 .recommended-card,
 .ai-assistant-card {
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 8px 32px 0 rgba(0, 128, 0, 0.05);
+  border: 2px solid #e0e0e0;
+  box-shadow: 0 8px 32px 0 rgba(0, 128, 0, 0.1);
   border-radius: 16px;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .nutrition-card {
-  border-left: 4px solid #006400;
+  border-left: 4px solid #00A86B;
 }
 
 .nutrition-card h3,
@@ -438,7 +441,7 @@ body {
 
 /* Nutrition Bars */
 .nutrition-item {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .nutrition-item:last-child {
@@ -507,13 +510,16 @@ body {
   gap: 0.75rem;
   padding: 0.75rem;
   border-radius: 12px;
+  border: 1.5px solid #f0f0f0;
+  background: #ffffff;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .recommended-item:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: #f8f8f8;
   transform: translateX(4px);
+  border-color: #00A86B;
 }
 
 .recommended-item img {
@@ -522,6 +528,12 @@ body {
   border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
+  background: #e0e0e0;
+}
+
+.recommended-item img[src=""],
+.recommended-item img:not([src]) {
+  display: none;
 }
 
 .recommended-item div {
@@ -548,10 +560,11 @@ body {
 
 /* AI Assistant */
 .ai-assistant-card {
-  background: linear-gradient(135deg, rgba(0, 128, 0, 0.05), rgba(141, 251, 119, 0.05));
+  background: #ffffff;
   backdrop-filter: blur(20px);
   position: relative;
   overflow: hidden;
+  border: 2px solid #e0f7e9 !important;
 }
 
 .ai-assistant-card::before {
