@@ -235,15 +235,15 @@ const FoodList = () => {
                     <div className="food-stats-grid">
                       <div className="food-stat-item time">
                         <span className="material-symbols-outlined">timer</span>
-                        <span className="stat-value">{food.cookingTime || food.time || 20} Phút</span>
+                        <span className="stat-value">{food.totalTime || food.prepTime || food.cookingTime || 20} Phút</span>
                       </div>
                       <div className="food-stat-item calories">
                         <span className="material-symbols-outlined">local_fire_department</span>
-                        <span className="stat-value">{food.calories || 420} Calo</span>
+                        <span className="stat-value">{food.calories || 320} Calo</span>
                       </div>
                       <div className="food-stat-item difficulty">
                         <span className="material-symbols-outlined">bar_chart</span>
-                        <span className="stat-value">{food.difficulty || 'Dễ'}</span>
+                        <span className="stat-value">{food.difficulty || 'Easy'}</span>
                       </div>
                     </div>
                     <Link to={`/foods/${food.id}`} className="view-detail-btn">
