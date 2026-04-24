@@ -1,11 +1,14 @@
 package com.mealapp.controller;
 
+import com.mealapp.dto.FoodDTO;
 import com.mealapp.model.Food;
 import com.mealapp.model.User;
 import com.mealapp.repository.FoodRepository;
 import com.mealapp.repository.UserRepository;
+import com.mealapp.service.FoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +24,12 @@ public class AdminController {
     @Autowired
     private FoodRepository foodRepository;
     
+    @Autowired
+    private FoodService foodService;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
     // User Management
     @GetMapping("/users")
     public ResponseEntity<List<User>> getAllUsers() {
@@ -35,6 +44,32 @@ public class AdminController {
         return ResponseEntity.ok(user);
     }
     
+    @PostMapping("/users")
+    public ResponseEntity<User> createUser(@RequestBody User newUser) {
+        // Check if email already exists
+        if (userRepository.findByEmail(newUser.getEmail()).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+        
+        // Hash password
+        if (newUser.getPassword() != null && !newUser.getPassword().isEmpty()) {
+            newUser.setPassword(passwordEncoder.encode(newUser.getPassword()));
+        } else {
+            throw new RuntimeException("Password is required");
+        }
+        
+        // Set default values if not provided
+        if (newUser.getRole() == null || newUser.getRole().isEmpty()) {
+            newUser.setRole("USER");
+        }
+        if (newUser.getStatus() == null || newUser.getStatus().isEmpty()) {
+            newUser.setStatus("ACTIVE");
+        }
+        
+        User savedUser = userRepository.save(newUser);
+        return ResponseEntity.ok(savedUser);
+    }
+    
     @PutMapping("/users/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User userDetails) {
         User user = userRepository.findById(id)
@@ -44,6 +79,11 @@ public class AdminController {
         user.setEmail(userDetails.getEmail());
         user.setRole(userDetails.getRole());
         user.setStatus(userDetails.getStatus());
+        
+        // Only update password if provided
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
         
         User updatedUser = userRepository.save(user);
         return ResponseEntity.ok(updatedUser);
@@ -59,36 +99,28 @@ public class AdminController {
     
     // Food Management
     @PostMapping("/foods")
-    public ResponseEntity<Food> createFood(@RequestBody Food food) {
-        Food savedFood = foodRepository.save(food);
-        return ResponseEntity.ok(savedFood);
+    public ResponseEntity<FoodDTO> createFood(@RequestBody FoodDTO foodDTO) {
+        try {
+            // Set default status if not provided
+            if (foodDTO.getStatus() == null || foodDTO.getStatus().isEmpty()) {
+                foodDTO.setStatus("PUBLISHED");
+            }
+            
+            // Set default values for numeric fields if null
+            if (foodDTO.getServings() == null) foodDTO.setServings(1);
+            if (foodDTO.getCalories() == null) foodDTO.setCalories(0);
+            
+            FoodDTO savedFood = foodService.createFood(foodDTO);
+            return ResponseEntity.ok(savedFood);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Error creating food: " + e.getMessage(), e);
+        }
     }
     
     @PutMapping("/foods/{id}")
-    public ResponseEntity<Food> updateFood(@PathVariable Long id, @RequestBody Food foodDetails) {
-        Food food = foodRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Food not found"));
-        
-        food.setName(foodDetails.getName());
-        food.setDescription(foodDetails.getDescription());
-        food.setImage(foodDetails.getImage());
-        food.setCalories(foodDetails.getCalories());
-        food.setPrepTime(foodDetails.getPrepTime());
-        food.setCookTime(foodDetails.getCookTime());
-        food.setTotalTime(foodDetails.getTotalTime());
-        food.setServings(foodDetails.getServings());
-        food.setDifficulty(foodDetails.getDifficulty());
-        food.setCategory(foodDetails.getCategory());
-        food.setCuisine(foodDetails.getCuisine());
-        food.setMealType(foodDetails.getMealType());
-        food.setDietType(foodDetails.getDietType());
-        food.setProtein(foodDetails.getProtein());
-        food.setCarbs(foodDetails.getCarbs());
-        food.setFat(foodDetails.getFat());
-        food.setFiber(foodDetails.getFiber());
-        food.setStatus(foodDetails.getStatus());
-        
-        Food updatedFood = foodRepository.save(food);
+    public ResponseEntity<FoodDTO> updateFood(@PathVariable Long id, @RequestBody FoodDTO foodDTO) {
+        FoodDTO updatedFood = foodService.updateFood(id, foodDTO);
         return ResponseEntity.ok(updatedFood);
     }
     

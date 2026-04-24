@@ -193,46 +193,47 @@ const FoodDetail = () => {
               <span>📋</span>
               Các bước thực hiện
             </h2>
-            {food.instructions?.map((step, index) => (
-              <div key={index} className="instruction-step">
-                <div className="step-image">
-                  <img 
-                    src={step.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200'} 
-                    alt={`Bước ${index + 1}`} 
-                  />
+            {food.instructions && food.instructions.length > 0 ? (
+              food.instructions.map((step, index) => (
+                <div key={index} className="instruction-step">
+                  <div className="step-image">
+                    <img 
+                      src={step.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200'} 
+                      alt={`Bước ${index + 1}`} 
+                    />
+                  </div>
+                  <div className="step-content">
+                    <h4>Bước {step.stepOrder || index + 1}</h4>
+                    <p>{step.instruction}</p>
+                  </div>
                 </div>
-                <div className="step-content">
-                  <h4>Bước {index + 1}: {step.title}</h4>
-                  <p>{step.description}</p>
+              ))
+            ) : (
+              [
+                {
+                  description: 'Lấy thịt bò ra khỏi tủ lạnh ít nhất 30 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thấm khô thịt bằng khăn giấy và ướp muối, tiêu đều hai mặt.',
+                  image: 'https://images.unsplash.com/photo-1588347818036-8fc5e6d9e0e8?w=200'
+                },
+                {
+                  description: 'Làm nóng chảo với dầu olive đến khi bốc khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có lớp vỏ màu nâu đẹp mắt.',
+                  image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=200'
+                },
+                {
+                  description: 'Hạ lửa, thêm bơ, tỏi đập dập và hương thảo. Dùng thìa liên tục rưới bơ tan chảy lên miếng thịt trong 2 phút cuối để thịt mọng nước và thơm hương.',
+                  image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200'
+                }
+              ].map((step, index) => (
+                <div key={index} className="instruction-step">
+                  <div className="step-image">
+                    <img src={step.image} alt={`Bước ${index + 1}`} />
+                  </div>
+                  <div className="step-content">
+                    <h4>Bước {index + 1}</h4>
+                    <p>{step.description}</p>
+                  </div>
                 </div>
-              </div>
-            )) || [
-              {
-                title: 'Chuẩn bị thịt',
-                description: 'Lấy thịt bò ra khỏi tủ lạnh ít nhất 30 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thấm khô thịt bằng khăn giấy và ướp muối, tiêu đều hai mặt.',
-                image: 'https://images.unsplash.com/photo-1588347818036-8fc5e6d9e0e8?w=200'
-              },
-              {
-                title: 'Áp chảo',
-                description: 'Làm nóng chảo với dầu olive đến khi bốc khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có lớp vỏ màu nâu đẹp mắt.',
-                image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=200'
-              },
-              {
-                title: 'Rưới sốt bơ tỏi',
-                description: 'Hạ lửa, thêm bơ, tỏi đập dập và hương thảo. Dùng thìa liên tục rưới bơ tan chảy lên miếng thịt trong 2 phút cuối để thịt mọng nước và thơm hương.',
-                image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=200'
-              }
-            ].map((step, index) => (
-              <div key={index} className="instruction-step">
-                <div className="step-image">
-                  <img src={step.image} alt={`Bước ${index + 1}`} />
-                </div>
-                <div className="step-content">
-                  <h4>Bước {index + 1}: {step.title}</h4>
-                  <p>{step.description}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 

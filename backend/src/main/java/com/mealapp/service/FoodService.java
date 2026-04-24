@@ -108,6 +108,33 @@ public class FoodService {
         updateFoodFromDTO(food, foodDTO);
         Food updatedFood = foodRepository.save(food);
         
+        // Delete existing ingredients and instructions
+        ingredientRepository.deleteByFoodId(id);
+        instructionRepository.deleteByFoodId(id);
+        
+        // Save new ingredients
+        if (foodDTO.getIngredients() != null) {
+            for (IngredientDTO ingredientDTO : foodDTO.getIngredients()) {
+                Ingredient ingredient = new Ingredient();
+                ingredient.setName(ingredientDTO.getName());
+                ingredient.setAmount(ingredientDTO.getAmount());
+                ingredient.setUnit(ingredientDTO.getUnit());
+                ingredient.setFood(updatedFood);
+                ingredientRepository.save(ingredient);
+            }
+        }
+        
+        // Save new instructions
+        if (foodDTO.getInstructions() != null) {
+            for (InstructionDTO instructionDTO : foodDTO.getInstructions()) {
+                FoodInstruction instruction = new FoodInstruction();
+                instruction.setInstruction(instructionDTO.getInstruction());
+                instruction.setStepOrder(instructionDTO.getStepOrder());
+                instruction.setFood(updatedFood);
+                instructionRepository.save(instruction);
+            }
+        }
+        
         return convertToDetailDTO(updatedFood);
     }
 

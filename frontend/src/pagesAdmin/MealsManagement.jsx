@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { foodService } from '../services/foodService'
+import { adminService } from '../services/adminService'
+import MealModal from './MealModal'
 import './AdminLayout.css'
 import './MealsManagement.css'
 
@@ -11,28 +13,82 @@ const MealsManagement = () => {
   const [loading, setLoading] = useState(true)
   const [loggingOut, setLoggingOut] = useState(false)
   const [error, setError] = useState(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedMeal, setSelectedMeal] = useState(null)
   const navigate = useNavigate()
 
   // Load meals data from API
   useEffect(() => {
-    const loadMeals = async () => {
-      try {
-        setLoading(true)
-        console.log('Loading meals from API...')
-        const data = await foodService.getAllFoods()
-        console.log('Meals loaded:', data)
-        setMeals(data)
-        setError(null)
-      } catch (err) {
-        console.error('Error loading meals:', err)
-        setError('Không thể tải dữ liệu món ăn')
-      } finally {
-        setLoading(false)
-      }
-    }
-
     loadMeals()
   }, [])
+
+  const loadMeals = async () => {
+    try {
+      setLoading(true)
+      console.log('Loading meals from API...')
+      const data = await foodService.getAllFoods()
+      console.log('Meals loaded:', data)
+      setMeals(data)
+      setError(null)
+    } catch (err) {
+      console.error('Error loading meals:', err)
+      setError('Không thể tải dữ liệu món ăn')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddMeal = () => {
+    setSelectedMeal(null)
+    setIsModalOpen(true)
+  }
+
+  const handleEditMeal = async (meal) => {
+    try {
+      // Fetch full meal details including ingredients and instructions
+      const fullMealData = await foodService.getFoodById(meal.id)
+      setSelectedMeal(fullMealData)
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error('Error loading meal details:', error)
+      // Fallback to basic meal data if API fails
+      setSelectedMeal(meal)
+      setIsModalOpen(true)
+    }
+  }
+
+  const handleDeleteMeal = async (id, name) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa món "${name}"?`)) {
+      return
+    }
+
+    try {
+      await adminService.deleteMeal(id)
+      alert('Xóa món ăn thành công!')
+      loadMeals() // Reload list
+    } catch (error) {
+      console.error('Error deleting meal:', error)
+      alert('Không thể xóa món ăn!')
+    }
+  }
+
+  const handleSaveMeal = async (formData) => {
+    try {
+      if (selectedMeal) {
+        // Update existing meal
+        await adminService.updateMeal(selectedMeal.id, formData)
+        alert('Cập nhật món ăn thành công!')
+      } else {
+        // Create new meal
+        await adminService.createMeal(formData)
+        alert('Thêm món ăn mới thành công!')
+      }
+      loadMeals() // Reload list
+    } catch (error) {
+      console.error('Error saving meal:', error)
+      throw error
+    }
+  }
 
   const handleLogout = async () => {
     const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
@@ -86,10 +142,17 @@ const MealsManagement = () => {
   ]
 
   // Filter meals based on search query
-  const filteredMeals = meals.filter(meal =>
-    meal.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    meal.category?.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filteredMeals = meals.filter(meal => {
+    const query = searchQuery.toLowerCase()
+    return (
+      meal.name?.toLowerCase().includes(query) ||
+      meal.category?.toLowerCase().includes(query) ||
+      meal.cuisine?.toLowerCase().includes(query) ||
+      meal.mealType?.toLowerCase().includes(query) ||
+      meal.difficulty?.toLowerCase().includes(query) ||
+      meal.dietType?.toLowerCase().includes(query)
+    )
+  })
 
   // Helper function to get category color
   const getCategoryColor = (category) => {
@@ -204,7 +267,7 @@ const MealsManagement = () => {
               <h2>Quản lý Thực đơn</h2>
               <p>Điều chỉnh, cập nhật và tối ưu hóa các món ăn trong hệ thống AI.</p>
             </div>
-            <button className="add-meal-btn">
+            <button className="add-meal-btn" onClick={handleAddMeal}>
               <span className="material-icons">add</span>
               Thêm món ăn mới
             </button>
@@ -404,7 +467,7 @@ const MealsManagement = () => {
                                 e.target.style.transform = 'translateY(0)';
                                 e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
                               }}
-                              onClick={() => alert('Sửa món: ' + meal.name)}
+                              onClick={() => handleEditMeal(meal)}
                             >
                               <span style={{fontSize: '10px'}}>✏️</span>
                               Sửa
@@ -435,7 +498,7 @@ const MealsManagement = () => {
                                 e.target.style.transform = 'translateY(0)';
                                 e.target.style.boxShadow = '0 2px 4px rgba(239, 68, 68, 0.2)';
                               }}
-                              onClick={() => alert('Xóa món: ' + meal.name)}
+                              onClick={() => handleDeleteMeal(meal.id, meal.name)}
                             >
                               <span style={{fontSize: '10px'}}>🗑️</span>
                               Xóa
@@ -466,6 +529,14 @@ const MealsManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Meal Modal */}
+      <MealModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        meal={selectedMeal}
+        onSave={handleSaveMeal}
+      />
     </div>
   )
 }

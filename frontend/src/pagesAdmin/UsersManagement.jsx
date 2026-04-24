@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { adminService } from '../services/adminService'
+import UserModal from './UserModal'
 import './AdminLayout.css'
 import './UsersManagement.css'
 
@@ -10,6 +11,8 @@ const UsersManagement = () => {
   const [loading, setLoading] = useState(true)
   const [loggingOut, setLoggingOut] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -25,6 +28,32 @@ const UsersManagement = () => {
       console.error('Error fetching users:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleAddUser = () => {
+    setSelectedUser(null)
+    setIsModalOpen(true)
+  }
+
+  const handleEditUser = (user) => {
+    setSelectedUser(user)
+    setIsModalOpen(true)
+  }
+
+  const handleSaveUser = async (userData) => {
+    try {
+      if (selectedUser) {
+        // Update existing user
+        await adminService.updateUser(selectedUser.id, userData)
+      } else {
+        // Create new user
+        await adminService.createUser(userData)
+      }
+      fetchUsers() // Refresh list
+    } catch (error) {
+      console.error('Error saving user:', error)
+      throw error // Re-throw to let modal handle the error
     }
   }
 
@@ -211,7 +240,7 @@ const UsersManagement = () => {
               <h2>Quản lý người dùng</h2>
               <p>Quản trị viên có thể xem, chỉnh sửa và phân quyền cho người dùng hệ thống.</p>
             </div>
-            <button className="add-user-btn">
+            <button className="add-user-btn" onClick={handleAddUser}>
               <span className="material-icons">person_add</span>
               Thêm người dùng
             </button>
@@ -321,7 +350,10 @@ const UsersManagement = () => {
                         <td className="last-login">{user.lastLogin}</td>
                         <td className="text-right">
                           <div className="action-buttons">
-                            <button className="action-icon edit">
+                            <button 
+                              className="action-icon edit"
+                              onClick={() => handleEditUser(users.find(u => u.id === user.userId))}
+                            >
                               <span className="material-icons">edit</span>
                             </button>
                             <button 
@@ -357,6 +389,14 @@ const UsersManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* User Modal */}
+      <UserModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        user={selectedUser}
+        onSave={handleSaveUser}
+      />
     </div>
   )
 }
