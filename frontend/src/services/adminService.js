@@ -4,17 +4,14 @@ export const adminService = {
   // Dashboard Stats
   getDashboardStats: async () => {
     try {
-      // Get counts from different endpoints
-      const [usersRes, foodsRes] = await Promise.all([
-        api.get('/admin/users'),
-        api.get('/foods')
-      ])
+      // Get stats from backend endpoint
+      const response = await api.get('/admin/stats')
       
       return {
-        totalUsers: usersRes.data.length || 0,
-        totalMeals: foodsRes.data.length || 0,
-        totalOrders: 0, // Placeholder
-        revenue: 0 // Placeholder
+        totalUsers: response.data.totalUsers || 0,
+        totalMeals: response.data.totalFoods || 0,
+        totalOrders: response.data.totalOrders || 0,
+        totalMealPlans: response.data.totalMealPlans || 0
       }
     } catch (error) {
       console.error('Error fetching dashboard stats:', error)
@@ -22,7 +19,7 @@ export const adminService = {
         totalUsers: 0,
         totalMeals: 0,
         totalOrders: 0,
-        revenue: 0
+        totalMealPlans: 0
       }
     }
   },
@@ -107,16 +104,60 @@ export const adminService = {
         api.get('/foods')
       ])
       
+      const users = usersRes.data
+      const foods = foodsRes.data
+      
+      // Calculate category percentages from real food data
+      const categoryCount = {}
+      const totalFoods = foods.length
+      
+      foods.forEach(food => {
+        const category = food.category || food.dietType || 'Khác'
+        categoryCount[category] = (categoryCount[category] || 0) + 1
+      })
+      
+      const categories = Object.entries(categoryCount)
+        .map(([name, count]) => ({
+          name: name,
+          percentage: Math.round((count / totalFoods) * 100)
+        }))
+        .sort((a, b) => b.percentage - a.percentage)
+        .slice(0, 4) // Top 4 categories
+      
+      // Calculate user growth by month (last 12 months)
+      const userGrowth = []
+      const now = new Date()
+      
+      for (let i = 11; i >= 0; i--) {
+        const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        const monthName = `T${monthDate.getMonth() + 1}`
+        
+        // Count users created before or in this month
+        const usersInMonth = users.filter(user => {
+          if (!user.createdAt) return false
+          const userDate = new Date(user.createdAt)
+          return userDate <= new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0)
+        }).length
+        
+        userGrowth.push({
+          month: monthName,
+          count: usersInMonth
+        })
+      }
+      
       return {
-        users: usersRes.data,
-        foods: foodsRes.data,
-        // Add more analytics data as needed
+        users: users,
+        foods: foods,
+        categories: categories,
+        userGrowth: userGrowth
       }
     } catch (error) {
       console.error('Error fetching analytics:', error)
       return {
         users: [],
-        foods: []
+        foods: [],
+        categories: [],
+        userGrowth: []
       }
     }
   }

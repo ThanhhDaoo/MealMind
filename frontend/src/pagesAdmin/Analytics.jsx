@@ -7,6 +7,11 @@ import './Analytics.css'
 const Analytics = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [timeFilter, setTimeFilter] = useState('7days')
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const [customDateRange, setCustomDateRange] = useState({
+    startDate: '',
+    endDate: ''
+  })
   const [analyticsData, setAnalyticsData] = useState({
     users: [],
     foods: []
@@ -49,36 +54,168 @@ const Analytics = () => {
     }
   }
 
-  // Calculate real stats from API data
+  const handleTimeFilterChange = (filter) => {
+    setTimeFilter(filter)
+    if (filter === 'custom') {
+      setShowDatePicker(true)
+    } else {
+      setShowDatePicker(false)
+    }
+  }
+
+  const handleCustomDateApply = () => {
+    setShowDatePicker(false)
+    // The stats will automatically recalculate based on customDateRange
+  }
+
+  const handleExportAnalytics = () => {
+    try {
+      const stats = calculateStats()
+      
+      // Prepare CSV data
+      const headers = ['Chỉ số', 'Giá trị', 'Ghi chú']
+      const csvData = [
+        ['Tỷ lệ AI thành công', `${stats.aiSuccessRate}%`, 'Phần trăm người dùng hoạt động'],
+        ['Người dùng mới', stats.newUsers, `Trong ${stats.daysAgo} ngày qua`],
+        ['Tổng món ăn', stats.totalMeals, 'Tổng số món ăn trong hệ thống'],
+        ['Người dùng hoạt động', stats.activeUsers, 'Số người dùng đang hoạt động'],
+        ['Tổng người dùng', analyticsData.users?.length || 0, 'Tổng số người dùng đã đăng ký'],
+        ['', '', ''],
+        ['Top Món Ăn', '', ''],
+        ...topMeals.map((meal, index) => [
+          `${index + 1}. ${meal.name}`,
+          `${meal.rating} ⭐`,
+          `${meal.count} lượt xem`
+        ])
+      ]
+
+      // Create CSV content
+      const csvContent = [
+        `Báo Cáo Phân Tích - MealMind Admin`,
+        `Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}`,
+        `Khoảng thời gian: ${stats.daysAgo} ngày`,
+        '',
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+
+      // Add BOM for UTF-8
+      const BOM = '\uFEFF'
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+      
+      // Create download link
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `analytics_report_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      alert('Đã xuất báo cáo phân tích thành công!')
+    } catch (error) {
+      console.error('Error exporting analytics:', error)
+      alert('Có lỗi khi xuất báo cáo!')
+    }
+  }
+
+  // Calculate real stats from API data based on time filter
   const calculateStats = () => {
-    const totalUsers = analyticsData.users.length
-    const totalFoods = analyticsData.foods.length
-    const activeUsers = analyticsData.users.filter(user => user.status === 'ACTIVE').length
-    const successRate = totalFoods > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
+    // Filter users by search query if provided
+    let filteredUsers = analyticsData.users || []
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filteredUsers = filteredUsers.filter(user =>
+        user.name?.toLowerCase().includes(query) ||
+        user.email?.toLowerCase().includes(query) ||
+        user.role?.toLowerCase().includes(query)
+      )
+    }
+    
+    const totalUsers = filteredUsers.length
+    const totalFoods = analyticsData.foods?.length || 0
+    const activeUsers = filteredUsers.filter(user => user.status === 'ACTIVE').length
+    
+    // Calculate date range based on filter
+    let filterDate = new Date()
+    let daysAgo = 7
+    
+    if (timeFilter === '30days') {
+      daysAgo = 30
+      filterDate.setDate(filterDate.getDate() - 30)
+    } else if (timeFilter === 'custom' && customDateRange.startDate) {
+      filterDate = new Date(customDateRange.startDate)
+      const endDate = customDateRange.endDate ? new Date(customDateRange.endDate) : new Date()
+      daysAgo = Math.ceil((endDate - filterDate) / (1000 * 60 * 60 * 24))
+    } else {
+      filterDate.setDate(filterDate.getDate() - 7)
+      daysAgo = 7
+    }
+    
+    // Calculate new users within the time range
+    const newUsers = filteredUsers.filter(user => {
+      if (!user.createdAt) return false
+      const userDate = new Date(user.createdAt)
+      if (timeFilter === 'custom' && customDateRange.endDate) {
+        const endDate = new Date(customDateRange.endDate)
+        return userDate >= filterDate && userDate <= endDate
+      }
+      return userDate >= filterDate
+    }).length
+
+    // Calculate success rate based on active users percentage
+    const successRate = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
 
     return {
       aiSuccessRate: successRate,
-      newUsers: totalUsers,
+      newUsers: newUsers,
       totalMeals: totalFoods,
-      activeUsers: activeUsers
+      activeUsers: activeUsers,
+      daysAgo: daysAgo,
+      filteredUsers: filteredUsers
     }
   }
 
   const stats = calculateStats()
 
-  // Get top meals from real data
+  // Get top meals from real data with search filter
   const getTopMeals = () => {
     if (!analyticsData.foods || analyticsData.foods.length === 0) {
       return []
     }
 
-    return analyticsData.foods.slice(0, 4).map((food, index) => ({
+    // Filter by search query first
+    let filteredFoods = analyticsData.foods
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filteredFoods = analyticsData.foods.filter(food => 
+        food.name?.toLowerCase().includes(query) ||
+        food.category?.toLowerCase().includes(query) ||
+        food.cuisine?.toLowerCase().includes(query) ||
+        food.dietType?.toLowerCase().includes(query)
+      )
+    }
+
+    // Sort by rating or view count if available
+    const sortedFoods = [...filteredFoods].sort((a, b) => {
+      const ratingA = a.rating || 0
+      const ratingB = b.rating || 0
+      const viewA = a.viewCount || 0
+      const viewB = b.viewCount || 0
+      
+      // Sort by rating first, then by view count
+      if (ratingB !== ratingA) return ratingB - ratingA
+      return viewB - viewA
+    })
+
+    return sortedFoods.slice(0, 4).map((food) => ({
       name: food.name,
       image: food.image || food.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&h=300&fit=crop',
-      category: food.category || 'Regular',
-      categoryColor: getCategoryColor(food.category),
-      rating: 4.5 + (index * 0.1), // Simulated rating
-      count: `${Math.floor(Math.random() * 1000) + 500}` // Simulated count
+      category: food.category || food.dietType || 'Regular',
+      categoryColor: getCategoryColor(food.category || food.dietType),
+      rating: food.rating || 4.5,
+      count: food.viewCount || food.favoriteCount || 0
     }))
   }
 
@@ -92,6 +229,39 @@ const Analytics = () => {
   }
 
   const topMeals = getTopMeals()
+
+  // Generate heatmap data based on user activity
+  const generateHeatmapData = () => {
+    const totalUsers = analyticsData.users?.length || 0
+    const totalFoods = analyticsData.foods?.length || 0
+    
+    // Generate 35 cells (5 weeks x 7 days)
+    const heatmapData = []
+    for (let i = 0; i < 35; i++) {
+      // Calculate intensity based on position (simulate weekly pattern)
+      const dayOfWeek = i % 7
+      const weekNumber = Math.floor(i / 7)
+      
+      // Higher activity on weekdays (Mon-Fri), lower on weekends
+      let baseIntensity = 300
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        baseIntensity = 150 // Weekend
+      }
+      
+      // Increase intensity for recent weeks
+      const weekMultiplier = 1 + (weekNumber * 0.2)
+      
+      // Add some variation based on actual data
+      const dataMultiplier = totalUsers > 0 ? Math.min(totalUsers / 10, 2) : 1
+      
+      const intensity = Math.round(baseIntensity * weekMultiplier * dataMultiplier)
+      heatmapData.push(Math.min(intensity, 1000)) // Cap at 1000
+    }
+    
+    return heatmapData
+  }
+
+  const heatmapData = generateHeatmapData()
 
   return (
     <div className="analytics-page">
@@ -124,10 +294,10 @@ const Analytics = () => {
             <span className="material-icons">insights</span>
             <span>Analytics</span>
           </Link>
-          <a href="#" className="nav-item">
+          <Link to="/admin/settings" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
@@ -200,18 +370,90 @@ const Analytics = () => {
               <p>Theo dõi hiệu quả của trí tuệ nhân tạo và tương tác người dùng.</p>
             </div>
             <div className="time-filter">
-              <button className={timeFilter === '7days' ? 'active' : ''} onClick={() => setTimeFilter('7days')}>
+              <button className={timeFilter === '7days' ? 'active' : ''} onClick={() => handleTimeFilterChange('7days')}>
                 7 Ngày
               </button>
-              <button className={timeFilter === '30days' ? 'active' : ''} onClick={() => setTimeFilter('30days')}>
+              <button className={timeFilter === '30days' ? 'active' : ''} onClick={() => handleTimeFilterChange('30days')}>
                 30 Ngày
               </button>
-              <button className={timeFilter === 'custom' ? 'active' : ''} onClick={() => setTimeFilter('custom')}>
+              <button className={timeFilter === 'custom' ? 'active' : ''} onClick={() => handleTimeFilterChange('custom')}>
                 <span className="material-icons">calendar_today</span>
                 Tùy chọn
               </button>
             </div>
           </div>
+          
+          {/* Custom Date Picker */}
+          {showDatePicker && (
+            <div className="custom-date-picker" style={{
+              marginBottom: '1.5rem',
+              padding: '1.25rem',
+              background: 'white',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              border: '1px solid #e5e7eb',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'flex-end',
+              flexWrap: 'wrap'
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: '1', minWidth: '200px' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Từ ngày:</label>
+                <input
+                  type="date"
+                  value={customDateRange.startDate}
+                  onChange={(e) => setCustomDateRange({ ...customDateRange, startDate: e.target.value })}
+                  style={{
+                    padding: '0.625rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: '1', minWidth: '200px' }}>
+                <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>Đến ngày:</label>
+                <input
+                  type="date"
+                  value={customDateRange.endDate}
+                  onChange={(e) => setCustomDateRange({ ...customDateRange, endDate: e.target.value })}
+                  style={{
+                    padding: '0.625rem',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '0.875rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <button
+                onClick={handleCustomDateApply}
+                style={{
+                  padding: '0.625rem 1.5rem',
+                  background: 'linear-gradient(135deg, #008000 0%, #72de5e 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  height: '42px',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.transform = 'translateY(-1px)'
+                  e.target.style.boxShadow = '0 4px 12px rgba(0, 128, 0, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.transform = 'translateY(0)'
+                  e.target.style.boxShadow = 'none'
+                }}
+              >
+                Áp dụng
+              </button>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="stats-grid">
@@ -255,18 +497,18 @@ const Analytics = () => {
               <div className="stat-icon secondary">
                 <span className="material-icons">person_add</span>
               </div>
-              <p className="stat-label">TỔNG NGƯỜI DÙNG</p>
+              <p className="stat-label">NGƯỜI DÙNG MỚI ({stats.daysAgo} NGÀY)</p>
               <h3 className="stat-value secondary">{loading ? '...' : stats.newUsers.toLocaleString()}</h3>
               <div className="user-avatars">
-                {analyticsData.users.slice(0, 3).map((user, index) => (
+                {stats.filteredUsers?.slice(0, 3).map((user, index) => (
                   <img 
                     key={user.id || index} 
                     src={user.avatar || `https://i.pravatar.cc/150?img=${user.id || index + 12}`} 
                     alt="User" 
                   />
                 ))}
-                {analyticsData.users.length > 3 && (
-                  <div className="avatar-more">+{analyticsData.users.length - 3}</div>
+                {(stats.filteredUsers?.length || 0) > 3 && (
+                  <div className="avatar-more">+{stats.filteredUsers.length - 3}</div>
                 )}
               </div>
             </div>
@@ -303,7 +545,7 @@ const Analytics = () => {
               <h3>Giữ Chân Người Dùng</h3>
               <p>Mật độ tương tác theo giờ/ngày</p>
               <div className="heatmap-grid">
-                {[50, 100, 200, 400, 300, 100, 50, 100, 300, 500, 600, 400, 200, 100, 200, 400, 700, 800, 600, 400, 200, 100, 300, 500, 600, 400, 200, 100, 50, 100, 200, 400, 300, 100, 50].map((intensity, index) => (
+                {heatmapData.map((intensity, index) => (
                   <div key={index} className={`heatmap-cell intensity-${Math.floor(intensity / 200)}`}></div>
                 ))}
               </div>
@@ -327,7 +569,7 @@ const Analytics = () => {
                 <h3>Món Ăn Thịnh Hành Nhất</h3>
                 <p>Danh sách món ăn từ cơ sở dữ liệu hệ thống ({analyticsData.foods.length} món)</p>
               </div>
-              <button className="view-all-btn">Xem tất cả</button>
+              <button className="view-all-btn" onClick={() => navigate('/admin/meals')}>Xem tất cả</button>
             </div>
             <div className="meals-grid">
               {loading ? (
@@ -366,7 +608,7 @@ const Analytics = () => {
       </div>
 
       {/* FAB */}
-      <button className="analytics-fab">
+      <button className="analytics-fab" onClick={handleExportAnalytics} title="Xuất báo cáo">
         <span className="material-icons">download</span>
       </button>
     </div>

@@ -33,6 +33,9 @@ public class AdminController {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
+    @Autowired
+    private com.mealapp.repository.MealPlanRepository mealPlanRepository;
+    
     // User Management
     @GetMapping("/users")
     @Transactional(readOnly = true)
@@ -167,14 +170,23 @@ public class AdminController {
     public ResponseEntity<DashboardStats> getDashboardStats() {
         long totalUsers = userRepository.count();
         long totalFoods = foodRepository.count();
+        long totalMealPlans = mealPlanRepository.count();
         
         DashboardStats stats = new DashboardStats();
         stats.setTotalUsers(totalUsers);
         stats.setTotalFoods(totalFoods);
-        stats.setTotalOrders(0L); // Placeholder
-        stats.setRevenue(0.0); // Placeholder
+        stats.setTotalOrders(0L); // Placeholder for AI recommendations
+        stats.setTotalMealPlans(totalMealPlans);
         
         return ResponseEntity.ok(stats);
+    }
+    
+    // Get all meal plans (for dashboard)
+    @GetMapping("/meal-plans")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<com.mealapp.model.MealPlan>> getAllMealPlans() {
+        List<com.mealapp.model.MealPlan> mealPlans = mealPlanRepository.findAll();
+        return ResponseEntity.ok(mealPlans);
     }
 }
 
@@ -182,7 +194,7 @@ class DashboardStats {
     private Long totalUsers;
     private Long totalFoods;
     private Long totalOrders;
-    private Double revenue;
+    private Long totalMealPlans;
     
     // Getters and setters
     public Long getTotalUsers() { return totalUsers; }
@@ -194,6 +206,6 @@ class DashboardStats {
     public Long getTotalOrders() { return totalOrders; }
     public void setTotalOrders(Long totalOrders) { this.totalOrders = totalOrders; }
     
-    public Double getRevenue() { return revenue; }
-    public void setRevenue(Double revenue) { this.revenue = revenue; }
+    public Long getTotalMealPlans() { return totalMealPlans; }
+    public void setTotalMealPlans(Long totalMealPlans) { this.totalMealPlans = totalMealPlans; }
 }

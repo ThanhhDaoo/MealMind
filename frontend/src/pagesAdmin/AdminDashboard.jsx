@@ -12,9 +12,11 @@ const AdminDashboard = () => {
     totalUsers: 0,
     totalMeals: 0,
     totalOrders: 0,
-    revenue: 0
+    totalMealPlans: 0
   })
   const [loading, setLoading] = useState(true)
+  const [categories, setCategories] = useState([])
+  const [userGrowthData, setUserGrowthData] = useState([])
 
   useEffect(() => {
     fetchDashboardData()
@@ -25,6 +27,13 @@ const AdminDashboard = () => {
       setLoading(true)
       const data = await adminService.getDashboardStats()
       setStats(data)
+      
+      // Fetch analytics data
+      const analyticsData = await adminService.getAnalytics()
+      if (analyticsData) {
+        setCategories(analyticsData.categories || [])
+        setUserGrowthData(analyticsData.userGrowth || [])
+      }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -72,9 +81,9 @@ const AdminDashboard = () => {
       color: 'secondary'
     },
     {
-      icon: 'payments',
-      title: 'Doanh thu tháng này',
-      value: loading ? '...' : `$${stats.revenue.toLocaleString()}`,
+      icon: 'calendar_month',
+      title: 'Tổng số kế hoạch được lập',
+      value: loading ? '...' : stats.totalMealPlans?.toLocaleString() || '0',
       change: '+8.9%',
       color: 'tertiary'
     },
@@ -88,7 +97,8 @@ const AdminDashboard = () => {
     }
   ]
 
-  const categories = [
+  // Use real data if available, otherwise use default
+  const displayCategories = categories.length > 0 ? categories : [
     { name: 'Ăn chay (Vegan)', percentage: 85 },
     { name: 'Keto', percentage: 62 },
     { name: 'Ăn kiêng Gluten', percentage: 45 },
@@ -165,10 +175,10 @@ const AdminDashboard = () => {
             <span className="material-icons">insights</span>
             <span>Analytics</span>
           </Link>
-          <a href="#" className="nav-item">
+          <Link to="/admin/settings" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
@@ -275,8 +285,8 @@ const AdminDashboard = () => {
                   <p>Phân tích lượt đăng ký trong 12 tháng qua</p>
                 </div>
                 <select className="year-select">
-                  <option>Năm 2024</option>
-                  <option>Năm 2023</option>
+                  <option>Năm 2026</option>
+                  <option>Năm 2025</option>
                 </select>
               </div>
               <div className="chart-content">
@@ -312,7 +322,7 @@ const AdminDashboard = () => {
               <h4>Danh mục món ăn</h4>
               <p>Xu hướng tìm kiếm phổ biến</p>
               <div className="categories-list">
-                {categories.map((category, index) => (
+                {displayCategories.map((category, index) => (
                   <div key={index} className="category-item">
                     <div className="category-header">
                       <span>{category.name}</span>
