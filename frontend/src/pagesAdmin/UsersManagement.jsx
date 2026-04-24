@@ -274,10 +274,10 @@ const UsersManagement = () => {
             <span className="material-icons">insights</span>
             <span>Analytics</span>
           </Link>
-          <a href="#" className="nav-item">
+          <Link to="/admin/settings" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">

@@ -12,6 +12,7 @@ import AdminDashboard from './pagesAdmin/AdminDashboard'
 import MealsManagement from './pagesAdmin/MealsManagement'
 import UsersManagement from './pagesAdmin/UsersManagement'
 import Analytics from './pagesAdmin/Analytics'
+import Settings from './pagesAdmin/Settings'
 import './App.css'
 
 function AppContent() {
@@ -41,6 +42,7 @@ function AppContent() {
           <Route path="/admin/meals" element={<MealsManagement />} />
           <Route path="/admin/users" element={<UsersManagement />} />
           <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/settings" element={<Settings />} />
         </Routes>
       </main>
       {!isAdminRoute && !isLoginRoute && <Footer />}

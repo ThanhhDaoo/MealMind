@@ -9,18 +9,34 @@ import './MealsManagement.css'
 const MealsManagement = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [mealsPerPage] = useState(10)
   const [meals, setMeals] = useState([])
   const [loading, setLoading] = useState(true)
   const [loggingOut, setLoggingOut] = useState(false)
   const [error, setError] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState(null)
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
   const navigate = useNavigate()
 
   // Load meals data from API
   useEffect(() => {
     loadMeals()
   }, [])
+
+  // Close filter menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showFilterMenu && !event.target.closest('.filter-dropdown')) {
+        setShowFilterMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilterMenu])
 
   const loadMeals = async () => {
     try {
@@ -90,6 +106,82 @@ const MealsManagement = () => {
     }
   }
 
+  const handleFilterClick = () => {
+    setShowFilterMenu(!showFilterMenu)
+  }
+
+  const handleSortBy = (sortType) => {
+    const sortedMeals = [...meals]
+    switch (sortType) {
+      case 'name-asc':
+        sortedMeals.sort((a, b) => a.name.localeCompare(b.name))
+        break
+      case 'name-desc':
+        sortedMeals.sort((a, b) => b.name.localeCompare(a.name))
+        break
+      case 'calories-asc':
+        sortedMeals.sort((a, b) => (a.calories || 0) - (b.calories || 0))
+        break
+      case 'calories-desc':
+        sortedMeals.sort((a, b) => (b.calories || 0) - (a.calories || 0))
+        break
+      case 'rating-desc':
+        sortedMeals.sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        break
+      case 'time-asc':
+        sortedMeals.sort((a, b) => (a.totalTime || 0) - (b.totalTime || 0))
+        break
+      default:
+        break
+    }
+    setMeals(sortedMeals)
+    setShowFilterMenu(false)
+  }
+
+  const handleExportCSV = () => {
+    try {
+      // Prepare CSV data
+      const headers = ['ID', 'Tên món', 'Danh mục', 'Ẩm thực', 'Loại bữa', 'Calories', 'Thời gian', 'Độ khó', 'Đánh giá', 'Trạng thái']
+      const csvData = filteredMeals.map(meal => [
+        `MM-${meal.id}`,
+        meal.name,
+        meal.category || 'N/A',
+        meal.cuisine || 'N/A',
+        meal.mealType || 'N/A',
+        meal.calories || 0,
+        `${meal.totalTime || 0} phút`,
+        meal.difficulty || 'N/A',
+        meal.rating ? `${meal.rating}/5` : 'N/A',
+        meal.status === 'PUBLISHED' ? 'Đã xuất bản' : 'Nháp'
+      ])
+
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+
+      // Add BOM for UTF-8
+      const BOM = '\uFEFF'
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+      
+      // Create download link
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `meals_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      alert('Đã xuất danh sách món ăn thành công!')
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+      alert('Có lỗi khi xuất file!')
+    }
+  }
+
   const handleLogout = async () => {
     const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
     if (!confirmed) return
@@ -154,6 +246,22 @@ const MealsManagement = () => {
     )
   })
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredMeals.length / mealsPerPage)
+  const indexOfLastMeal = currentPage * mealsPerPage
+  const indexOfFirstMeal = indexOfLastMeal - mealsPerPage
+  const currentMeals = filteredMeals.slice(indexOfFirstMeal, indexOfLastMeal)
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery])
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   // Helper function to get category color
   const getCategoryColor = (category) => {
     if (!category) return 'blue'
@@ -195,10 +303,10 @@ const MealsManagement = () => {
             <span className="material-icons">insights</span>
             <span>Analytics</span>
           </Link>
-          <a href="#" className="nav-item">
+          <Link to="/admin/settings" className="nav-item">
             <span className="material-icons">settings</span>
             <span>Settings</span>
-          </a>
+          </Link>
         </nav>
 
         <div className="sidebar-footer">
@@ -323,61 +431,130 @@ const MealsManagement = () => {
                 gap: '16px', 
                 alignItems: 'center'
               }}>
-                <button style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#64748b',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  padding: '10px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 1)';
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
-                }}>
-                  <span style={{fontSize: '14px'}}>🔍</span>
-                  Bộ lọc
-                </button>
-                <button style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  fontSize: '13px',
-                  fontWeight: '500',
-                  color: '#64748b',
-                  background: 'rgba(255, 255, 255, 0.9)',
-                  padding: '10px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(0, 0, 0, 0.1)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 1)';
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(255, 255, 255, 0.9)';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
-                }}>
+                <div className="filter-dropdown" style={{position: 'relative'}}>
+                  <button 
+                    onClick={handleFilterClick}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      color: '#64748b',
+                      background: 'rgba(255, 255, 255, 0.9)',
+                      padding: '10px 16px',
+                      borderRadius: '10px',
+                      border: '1px solid rgba(0, 0, 0, 0.1)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.background = 'rgba(255, 255, 255, 1)';
+                      e.target.style.transform = 'translateY(-1px)';
+                      e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                      e.target.style.transform = 'translateY(0)';
+                      e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                    }}>
+                    <span style={{fontSize: '14px'}}>🔍</span>
+                    Bộ lọc
+                  </button>
+                  {showFilterMenu && (
+                    <div className="filter-menu" style={{
+                      position: 'absolute',
+                      top: 'calc(100% + 0.5rem)',
+                      right: 0,
+                      background: 'white',
+                      borderRadius: '12px',
+                      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1)',
+                      padding: '0.5rem',
+                      minWidth: '220px',
+                      zIndex: 100
+                    }}>
+                      <div style={{
+                        padding: '0.75rem 1rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        color: '#9ca3af',
+                        borderBottom: '1px solid #f3f4f6',
+                        marginBottom: '0.25rem'
+                      }}>Sắp xếp theo</div>
+                      {[
+                        { key: 'name-asc', icon: 'arrow_upward', label: 'Tên A-Z' },
+                        { key: 'name-desc', icon: 'arrow_downward', label: 'Tên Z-A' },
+                        { key: 'calories-asc', icon: 'local_fire_department', label: 'Calories thấp' },
+                        { key: 'calories-desc', icon: 'whatshot', label: 'Calories cao' },
+                        { key: 'rating-desc', icon: 'star', label: 'Đánh giá cao' },
+                        { key: 'time-asc', icon: 'schedule', label: 'Thời gian nấu' }
+                      ].map(item => (
+                        <button 
+                          key={item.key}
+                          onClick={() => handleSortBy(item.key)} 
+                          style={{
+                            width: '100%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            padding: '0.75rem 1rem',
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#374151',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            cursor: 'pointer',
+                            borderRadius: '8px',
+                            transition: 'all 0.2s ease',
+                            textAlign: 'left'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = '#f3f4f6';
+                            e.currentTarget.style.color = '#008000';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = 'transparent';
+                            e.currentTarget.style.color = '#374151';
+                          }}>
+                          <span className="material-icons" style={{fontSize: '18px', color: '#6b7280'}}>{item.icon}</span>
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button 
+                  onClick={handleExportCSV}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    color: '#64748b',
+                    background: 'rgba(255, 255, 255, 0.9)',
+                    padding: '10px 16px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(0, 0, 0, 0.1)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = 'rgba(255, 255, 255, 1)';
+                    e.target.style.transform = 'translateY(-1px)';
+                    e.target.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'rgba(255, 255, 255, 0.9)';
+                    e.target.style.transform = 'translateY(0)';
+                    e.target.style.boxShadow = '0 2px 4px rgba(0, 0, 0, 0.05)';
+                  }}>
                   <span style={{fontSize: '14px'}}>📊</span>
                   Xuất CSV
                 </button>
@@ -406,7 +583,7 @@ const MealsManagement = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredMeals.map((meal, index) => (
+                    {currentMeals.map((meal, index) => (
                       <tr key={meal.id || index}>
                         <td className="meal-id" style={{width: '80px'}}>#{meal.id || `MM-${String(index + 1).padStart(3, '0')}`}</td>
                         <td style={{width: '200px', textAlign: 'left'}}>
@@ -444,7 +621,7 @@ const MealsManagement = () => {
                             <button 
                               style={{
                                 padding: '8px 14px',
-                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                background: 'linear-gradient(135deg, #008000 0%, #72de5e 100%)',
                                 color: 'white',
                                 border: 'none',
                                 borderRadius: '8px',
@@ -452,7 +629,7 @@ const MealsManagement = () => {
                                 fontWeight: '600',
                                 cursor: 'pointer',
                                 minWidth: '45px',
-                                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                                boxShadow: '0 2px 4px rgba(0, 128, 0, 0.2)',
                                 transition: 'all 0.2s ease',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -461,11 +638,11 @@ const MealsManagement = () => {
                               }}
                               onMouseEnter={(e) => {
                                 e.target.style.transform = 'translateY(-1px)';
-                                e.target.style.boxShadow = '0 4px 8px rgba(16, 185, 129, 0.3)';
+                                e.target.style.boxShadow = '0 4px 8px rgba(0, 128, 0, 0.3)';
                               }}
                               onMouseLeave={(e) => {
                                 e.target.style.transform = 'translateY(0)';
-                                e.target.style.boxShadow = '0 2px 4px rgba(16, 185, 129, 0.2)';
+                                e.target.style.boxShadow = '0 2px 4px rgba(0, 128, 0, 0.2)';
                               }}
                               onClick={() => handleEditMeal(meal)}
                             >
@@ -513,15 +690,49 @@ const MealsManagement = () => {
             </div>
 
             <div className="table-footer">
-              <p className="table-info">Hiển thị 1-{filteredMeals.length} trong số {meals.length} món ăn</p>
+              <p className="table-info">
+                Hiển thị {indexOfFirstMeal + 1}-{Math.min(indexOfLastMeal, filteredMeals.length)} trong số {filteredMeals.length} món ăn
+              </p>
               <div className="pagination">
-                <button className="page-btn" disabled>
+                <button 
+                  className="page-btn"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
                   <span className="material-icons">chevron_left</span>
                 </button>
-                <button className="page-btn active">1</button>
-                <button className="page-btn">2</button>
-                <button className="page-btn">3</button>
-                <button className="page-btn">
+                
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1
+                  // Show first page, last page, current page, and pages around current
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        className={`page-btn ${currentPage === pageNumber ? 'active' : ''}`}
+                        onClick={() => handlePageChange(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    )
+                  } else if (
+                    pageNumber === currentPage - 2 ||
+                    pageNumber === currentPage + 2
+                  ) {
+                    return <span key={pageNumber} className="page-dots">...</span>
+                  }
+                  return null
+                })}
+                
+                <button 
+                  className="page-btn"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
                   <span className="material-icons">chevron_right</span>
                 </button>
               </div>
