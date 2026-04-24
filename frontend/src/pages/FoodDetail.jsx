@@ -13,54 +13,64 @@ const FoodDetail = () => {
   useEffect(() => {
     const fetchFood = async () => {
       try {
+        setLoading(true)
+        console.log('Fetching food with ID:', id)
         const foodData = await foodService.getFoodById(id)
+        console.log('Food data received:', foodData)
         setFood(foodData)
       } catch (error) {
         console.error('Error fetching food:', error)
-        // Fallback to mock data for demo
-        setFood({
-          id: id,
-          name: 'Bò Áp Chảo Sốt Bơ Tỏi',
-          description: 'Món bò áp chảo với hương vị đậm đà từ bơ tỏi. Tôi thích ăn và là hương thức. Mình sẽ luôn chọn món này cho bữa tối, sáng trong tuần tại gia.',
-          image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500',
-          prepTime: 30,
-          servings: 'Trung bình',
-          calories: 650,
-          ingredients: [
-            { name: '500g Thịt thăn bò Mỹ', amount: '500', unit: 'g' },
-            { name: 'Sốt đậu xanh', amount: '2', unit: 'muỗng' },
-            { name: '3 lát Tỏi băm', amount: '3', unit: 'lát' },
-            { name: '2 muỗng nước thần (Rosemary)', amount: '2', unit: 'muỗng' },
-            { name: 'Muối dầu ăn Tiêu đen', amount: '1', unit: 'muỗng' },
-            { name: '2 muỗng canh Dầu Oliu', amount: '2', unit: 'muỗng canh' }
-          ],
-          instructions: [
-            {
-              title: 'Chuẩn bị thịt',
-              description: 'Lấy thịt bò ra để khỏi tủ lạnh 15 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thái thịt thành từng miếng vừa ăn, tẩm ướp với muối và tiêu đen.'
-            },
-            {
-              title: 'Áp chảo',
-              description: 'Làm nóng chảo với dầu olive đến khi bắt khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có màu nâu đẹp mắt.'
-            },
-            {
-              title: 'Hoàn tất bò',
-              description: 'Tắt bếp, thêm bơ tỏi đậu xanh và hương thảo. Dùng thìa tẩm nước thịt lên chảy đều để thịt mềm mịn và thơm hương.'
+        // Chỉ fallback khi thực sự không load được
+        if (error.response?.status === 404) {
+          setFood(null) // Không tìm thấy món ăn
+        } else {
+          // Fallback to mock data for demo chỉ khi có lỗi server
+          setFood({
+            id: id,
+            name: 'Bò Áp Chảo Sốt Bơ Tỏi',
+            description: 'Món bò áp chảo với hương vị đậm đà từ bơ tỏi. Tôi thích ăn và là hương thức. Mình sẽ luôn chọn món này cho bữa tối, sáng trong tuần tại gia.',
+            image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500',
+            prepTime: 30,
+            servings: 'Trung bình',
+            calories: 650,
+            ingredients: [
+              { name: '500g Thịt thăn bò Mỹ', amount: '500', unit: 'g' },
+              { name: 'Sốt đậu xanh', amount: '2', unit: 'muỗng' },
+              { name: '3 lát Tỏi băm', amount: '3', unit: 'lát' },
+              { name: '2 muỗng nước thần (Rosemary)', amount: '2', unit: 'muỗng' },
+              { name: 'Muối dầu ăn Tiêu đen', amount: '1', unit: 'muỗng' },
+              { name: '2 muỗng canh Dầu Oliu', amount: '2', unit: 'muỗng canh' }
+            ],
+            instructions: [
+              {
+                stepOrder: 1,
+                instruction: 'Lấy thịt bò ra để khỏi tủ lạnh 15 phút trước khi nấu để thịt đạt nhiệt độ phòng. Thái thịt thành từng miếng vừa ăn, tẩm ướp với muối và tiêu đen.'
+              },
+              {
+                stepOrder: 2,
+                instruction: 'Làm nóng chảo với dầu olive đến khi bắt khói nhẹ. Cho thịt vào áp chảo mỗi mặt 2-3 phút cho đến khi có màu nâu đẹp mắt.'
+              },
+              {
+                stepOrder: 3,
+                instruction: 'Tắt bếp, thêm bơ tỏi đậu xanh và hương thảo. Dùng thìa tẩm nước thịt lên chảy đều để thịt mềm mịn và thơm hương.'
+              }
+            ],
+            nutrition: {
+              protein: 40,
+              carbs: 25,
+              fat: 15,
+              fiber: 5
             }
-          ],
-          nutrition: {
-            protein: 40,
-            carbs: 25,
-            fat: 15,
-            fiber: 5
-          }
-        })
+          })
+        }
       } finally {
         setLoading(false)
       }
     }
 
-    fetchFood()
+    if (id) {
+      fetchFood()
+    }
   }, [id])
 
   const handleAddToPlan = () => {
@@ -113,11 +123,11 @@ const FoodDetail = () => {
           <div className="food-meta">
             <div className="meta-item">
               <i className="fas fa-clock"></i>
-              <span>{food.prepTime || 30} phút</span>
+              <span>{food.prepTime || food.totalTime || 30} phút</span>
             </div>
             <div className="meta-item">
               <i className="fas fa-users"></i>
-              <span>{food.servings || 'Trung bình'}</span>
+              <span>{food.servings || 'Trung bình'} khẩu phần</span>
             </div>
             <div className="meta-item">
               <i className="fas fa-fire"></i>
@@ -154,36 +164,41 @@ const FoodDetail = () => {
               Nguyên liệu
             </h2>
             <div className="ingredients-grid">
-              {food.ingredients?.map((ingredient, index) => (
-                <div key={index} className="ingredient-item">
-                  <input type="checkbox" id={`ingredient-${index}`} />
-                  <label htmlFor={`ingredient-${index}`}>
-                    <span className="ingredient-name">{ingredient.name}</span>
-                    {ingredient.amount && ingredient.unit && (
-                      <span className="ingredient-amount">
-                        {ingredient.amount} {ingredient.unit}
-                      </span>
-                    )}
-                  </label>
-                </div>
-              )) || [
-                { name: '500g Thịt thăn bò Mỹ', amount: 'Tươi', unit: '' },
-                { name: '50g Bơ lạt', amount: '', unit: '' },
-                { name: '3 tép Tỏi tươi', amount: '', unit: '' },
-                { name: '2 nhánh Hương thảo (Rosemary)', amount: '', unit: '' },
-                { name: 'Muối biển và Tiêu đen', amount: '', unit: '' },
-                { name: '2 muỗng canh Dầu Olive', amount: '', unit: '' }
-              ].map((ingredient, index) => (
-                <div key={index} className="ingredient-item">
-                  <input type="checkbox" id={`ingredient-${index}`} />
-                  <label htmlFor={`ingredient-${index}`}>
-                    <span className="ingredient-name">{ingredient.name}</span>
-                    {ingredient.amount && (
-                      <span className="ingredient-amount">{ingredient.amount}</span>
-                    )}
-                  </label>
-                </div>
-              ))}
+              {food.ingredients && food.ingredients.length > 0 ? (
+                food.ingredients.map((ingredient, index) => (
+                  <div key={index} className="ingredient-item">
+                    <input type="checkbox" id={`ingredient-${index}`} />
+                    <label htmlFor={`ingredient-${index}`}>
+                      <span className="ingredient-name">{ingredient.name}</span>
+                      {ingredient.amount && ingredient.unit && (
+                        <span className="ingredient-amount">
+                          {ingredient.amount} {ingredient.unit}
+                        </span>
+                      )}
+                    </label>
+                  </div>
+                ))
+              ) : (
+                // Fallback ingredients nếu không có data
+                [
+                  { name: '500g Thịt thăn bò Mỹ', amount: 'Tươi', unit: '' },
+                  { name: '50g Bơ lạt', amount: '', unit: '' },
+                  { name: '3 tép Tỏi tươi', amount: '', unit: '' },
+                  { name: '2 nhánh Hương thảo (Rosemary)', amount: '', unit: '' },
+                  { name: 'Muối biển và Tiêu đen', amount: '', unit: '' },
+                  { name: '2 muỗng canh Dầu Olive', amount: '', unit: '' }
+                ].map((ingredient, index) => (
+                  <div key={index} className="ingredient-item">
+                    <input type="checkbox" id={`ingredient-${index}`} />
+                    <label htmlFor={`ingredient-${index}`}>
+                      <span className="ingredient-name">{ingredient.name}</span>
+                      {ingredient.amount && (
+                        <span className="ingredient-amount">{ingredient.amount}</span>
+                      )}
+                    </label>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
@@ -199,7 +214,7 @@ const FoodDetail = () => {
                   <div className="step-image">
                     <img 
                       src={step.image || 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=200'} 
-                      alt={`Bước ${index + 1}`} 
+                      alt={`Bước ${step.stepOrder || index + 1}`} 
                     />
                   </div>
                   <div className="step-content">
@@ -246,7 +261,7 @@ const FoodDetail = () => {
               <div className="nutrition-item">
                 <div className="nutrition-label">
                   <span>Protein</span>
-                  <span className="nutrition-value">{food.nutrition?.protein || 45}g</span>
+                  <span className="nutrition-value">{food.protein || 45}g</span>
                 </div>
                 <div className="nutrition-bar">
                   <div className="nutrition-fill protein" style={{width: '85%'}}></div>
@@ -255,7 +270,7 @@ const FoodDetail = () => {
               <div className="nutrition-item">
                 <div className="nutrition-label">
                   <span>Fat</span>
-                  <span className="nutrition-value">{food.nutrition?.fat || 32}g</span>
+                  <span className="nutrition-value">{food.fat || 32}g</span>
                 </div>
                 <div className="nutrition-bar">
                   <div className="nutrition-fill fat" style={{width: '60%'}}></div>
@@ -264,7 +279,7 @@ const FoodDetail = () => {
               <div className="nutrition-item">
                 <div className="nutrition-label">
                   <span>Carbs</span>
-                  <span className="nutrition-value">{food.nutrition?.carbs || 8}g</span>
+                  <span className="nutrition-value">{food.carbs || 8}g</span>
                 </div>
                 <div className="nutrition-bar">
                   <div className="nutrition-fill carbs" style={{width: '15%'}}></div>
