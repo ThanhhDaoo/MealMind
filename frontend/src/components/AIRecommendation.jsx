@@ -24,7 +24,8 @@ const AIRecommendation = () => {
   const dietTypes = ['Keto', 'Vegan', 'Low-carb']
 
   return (
-    <div className="ai-recommendation-container">
+    <div className="ai-page-background">
+      <div className="ai-recommendation-container">
       {/* Hero Section & AI Input */}
       <section className="hero-section">
         <div className="hero-header">
@@ -214,6 +215,7 @@ const AIRecommendation = () => {
           </div>
         </section>
       )}
+      </div>
     </div>
   )
 }

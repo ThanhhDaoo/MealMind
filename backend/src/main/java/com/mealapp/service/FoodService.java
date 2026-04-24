@@ -10,10 +10,15 @@ import com.mealapp.repository.FoodInstructionRepository;
 import com.mealapp.repository.FoodRepository;
 import com.mealapp.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +34,50 @@ public class FoodService {
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<FoodDTO> getAllFoods(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Food> foodPage;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            foodPage = foodRepository.findByNameContainingIgnoreCaseAndStatus(search, "PUBLISHED", pageable);
+        } else {
+            foodPage = foodRepository.findByStatus("PUBLISHED", pageable);
+        }
+        
+        return foodPage.getContent()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Map<String, Object> getAllFoodsWithPagination(int page, int size, String search) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Food> foodPage;
+        
+        if (search != null && !search.trim().isEmpty()) {
+            foodPage = foodRepository.findByNameContainingIgnoreCaseAndStatus(search, "PUBLISHED", pageable);
+        } else {
+            foodPage = foodRepository.findByStatus("PUBLISHED", pageable);
+        }
+        
+        List<FoodDTO> foods = foodPage.getContent()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        
+        // Return pagination info as Map
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", foods);
+        result.put("totalPages", foodPage.getTotalPages());
+        result.put("totalElements", foodPage.getTotalElements());
+        result.put("currentPage", page);
+        result.put("size", size);
+        result.put("first", foodPage.isFirst());
+        result.put("last", foodPage.isLast());
+        
+        return result;
     }
 
     public FoodDTO getFoodById(Long id) {

@@ -720,7 +720,7 @@ main {
 .nav-menu {
   display: flex;
   list-style: none;
-  gap: 2.5rem;
+  gap: 1.5rem;
   align-items: center;
   margin: 0;
   padding: 0;
@@ -731,7 +731,7 @@ main {
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
-  padding: 0.6rem 1.2rem;
+  padding: 0.6rem 1rem;
   border-radius: 8px;
   position: relative;
   font-size: 1.05rem;

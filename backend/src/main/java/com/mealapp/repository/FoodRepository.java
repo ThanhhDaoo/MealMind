@@ -1,6 +1,8 @@
 package com.mealapp.repository;
 
 import com.mealapp.model.Food;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,6 +14,10 @@ import java.util.List;
 public interface FoodRepository extends JpaRepository<Food, Long> {
     
     List<Food> findByStatus(String status);
+    
+    Page<Food> findByStatus(String status, Pageable pageable);
+    
+    Page<Food> findByNameContainingIgnoreCaseAndStatus(String name, String status, Pageable pageable);
     
     List<Food> findByCategory(String category);
     
