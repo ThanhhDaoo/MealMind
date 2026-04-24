@@ -15,6 +15,7 @@ com/mealapp/dto/FoodDTO.class
 com/mealapp/dto/AuthResponse.class
 com/mealapp/repository/FoodInstructionRepository.class
 com/mealapp/service/AuthService.class
+com/mealapp/dto/UserDTO.class
 com/mealapp/model/Ingredient.class
 com/mealapp/controller/AuthController.class
 com/mealapp/repository/MealPlanRepository.class

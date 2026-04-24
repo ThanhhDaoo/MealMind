@@ -3,7 +3,9 @@ package com.mealapp.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -19,6 +21,8 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"ingredients", "instructions", "favoritedByUsers", "createdBy"})
+@EqualsAndHashCode(exclude = {"ingredients", "instructions", "favoritedByUsers", "createdBy"})
 public class Food {
     
     @Id
@@ -101,15 +105,15 @@ public class Food {
     private LocalDateTime updatedAt;
     
     // Relationships
-    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Ingredient> ingredients = new ArrayList<>();
     
-    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<FoodInstruction> instructions = new ArrayList<>();
     
-    @ManyToMany(mappedBy = "favoriteFoods")
+    @ManyToMany(mappedBy = "favoriteFoods", fetch = FetchType.LAZY)
     @JsonIgnore
     private Set<User> favoritedByUsers = new HashSet<>();
 }

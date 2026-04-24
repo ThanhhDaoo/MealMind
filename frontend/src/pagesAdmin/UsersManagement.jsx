@@ -13,11 +13,28 @@ const UsersManagement = () => {
   const [activeTab, setActiveTab] = useState('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [usersPerPage] = useState(10)
+  const [showFilterMenu, setShowFilterMenu] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchUsers()
   }, [])
+
+  // Close filter menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showFilterMenu && !event.target.closest('.filter-dropdown')) {
+        setShowFilterMenu(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilterMenu])
 
   const fetchUsers = async () => {
     try {
@@ -117,18 +134,107 @@ const UsersManagement = () => {
   ]
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchQuery.toLowerCase())
+    const searchLower = searchQuery.toLowerCase()
+    const matchesSearch = user.name.toLowerCase().includes(searchLower) ||
+                         user.email.toLowerCase().includes(searchLower) ||
+                         user.role.toLowerCase().includes(searchLower) ||
+                         user.status.toLowerCase().includes(searchLower) ||
+                         `#MM-${user.id}`.toLowerCase().includes(searchLower)
     const matchesTab = activeTab === 'all' || 
                       (activeTab === 'admin' && user.role === 'ADMIN') ||
                       (activeTab === 'user' && user.role === 'USER')
     return matchesSearch && matchesTab
   })
 
-  const usersList = filteredUsers.map(user => ({
+  // Pagination logic
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
+  const indexOfLastUser = currentPage * usersPerPage
+  const indexOfFirstUser = indexOfLastUser - usersPerPage
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, activeTab])
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleExportCSV = () => {
+    try {
+      // Prepare CSV data
+      const headers = ['ID', 'Tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày tạo']
+      const csvData = filteredUsers.map(user => [
+        `MM-${user.id}`,
+        user.name,
+        user.email,
+        user.role === 'ADMIN' ? 'Admin' : 'User',
+        user.status === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động',
+        user.createdAt ? new Date(user.createdAt).toLocaleDateString('vi-VN') : 'N/A'
+      ])
+
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        ...csvData.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n')
+
+      // Add BOM for UTF-8
+      const BOM = '\uFEFF'
+      const blob = new Blob([BOM + csvContent], { type: 'text/csv;charset=utf-8;' })
+      
+      // Create download link
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `users_${new Date().toISOString().split('T')[0]}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      
+      alert('Đã xuất danh sách người dùng thành công!')
+    } catch (error) {
+      console.error('Error exporting CSV:', error)
+      alert('Có lỗi khi xuất file!')
+    }
+  }
+
+  const handleFilterClick = () => {
+    setShowFilterMenu(!showFilterMenu)
+  }
+
+  const handleSortBy = (sortType) => {
+    const sortedUsers = [...users]
+    switch (sortType) {
+      case 'name-asc':
+        sortedUsers.sort((a, b) => a.name.localeCompare(b.name))
+        break
+      case 'name-desc':
+        sortedUsers.sort((a, b) => b.name.localeCompare(a.name))
+        break
+      case 'date-newest':
+        sortedUsers.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        break
+      case 'date-oldest':
+        sortedUsers.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        break
+      case 'email-asc':
+        sortedUsers.sort((a, b) => a.email.localeCompare(b.email))
+        break
+      default:
+        break
+    }
+    setUsers(sortedUsers)
+    setShowFilterMenu(false)
+  }
+
+  const usersList = currentUsers.map(user => ({
     id: `#MM-${user.id}`,
     name: user.name,
-    avatar: user.avatar || `https://i.pravatar.cc/150?img=${user.id}`,
+    avatar: null, // Use icon instead
     email: user.email,
     role: user.role === 'ADMIN' ? 'Admin' : 'User',
     roleColor: user.role === 'ADMIN' ? 'green' : 'blue',
@@ -276,27 +382,57 @@ const UsersManagement = () => {
                 <button 
                   className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}
                   onClick={() => setActiveTab('all')}
+                  style={{ display: 'inline-block', visibility: 'visible', opacity: 1 }}
                 >
                   Tất cả
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'admin' ? 'active' : ''}`}
                   onClick={() => setActiveTab('admin')}
+                  style={{ display: 'inline-block', visibility: 'visible', opacity: 1 }}
                 >
                   Admin
                 </button>
                 <button 
                   className={`tab-btn ${activeTab === 'user' ? 'active' : ''}`}
                   onClick={() => setActiveTab('user')}
+                  style={{ display: 'inline-block', visibility: 'visible', opacity: 1 }}
                 >
                   Người dùng
                 </button>
               </div>
               <div className="table-actions">
-                <button className="action-btn">
-                  <span className="material-icons">filter_list</span>
-                </button>
-                <button className="action-btn">
+                <div className="filter-dropdown">
+                  <button className="action-btn" onClick={handleFilterClick} title="Sắp xếp">
+                    <span className="material-icons">filter_list</span>
+                  </button>
+                  {showFilterMenu && (
+                    <div className="filter-menu">
+                      <div className="filter-menu-header">Sắp xếp theo</div>
+                      <button onClick={() => handleSortBy('name-asc')}>
+                        <span className="material-icons">arrow_upward</span>
+                        Tên A-Z
+                      </button>
+                      <button onClick={() => handleSortBy('name-desc')}>
+                        <span className="material-icons">arrow_downward</span>
+                        Tên Z-A
+                      </button>
+                      <button onClick={() => handleSortBy('date-newest')}>
+                        <span className="material-icons">schedule</span>
+                        Mới nhất
+                      </button>
+                      <button onClick={() => handleSortBy('date-oldest')}>
+                        <span className="material-icons">history</span>
+                        Cũ nhất
+                      </button>
+                      <button onClick={() => handleSortBy('email-asc')}>
+                        <span className="material-icons">email</span>
+                        Email A-Z
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <button className="action-btn" onClick={handleExportCSV} title="Xuất file CSV">
                   <span className="material-icons">download</span>
                 </button>
               </div>
@@ -332,7 +468,13 @@ const UsersManagement = () => {
                         <td>
                           <div className="user-info">
                             <div className="user-avatar-wrapper">
-                              <img src={user.avatar} alt={user.name} className="user-avatar" />
+                              {user.avatar ? (
+                                <img src={user.avatar} alt={user.name} className="user-avatar" />
+                              ) : (
+                                <div className="user-avatar user-avatar-icon">
+                                  <span className="material-icons">person</span>
+                                </div>
+                              )}
                               {user.isOnline && <div className="online-indicator"></div>}
                             </div>
                             <div>
@@ -375,13 +517,49 @@ const UsersManagement = () => {
             </div>
 
             <div className="table-footer">
-              <p className="table-info">Hiển thị {usersList.length} trên {users.length} người dùng</p>
+              <p className="table-info">
+                Hiển thị {indexOfFirstUser + 1} - {Math.min(indexOfLastUser, filteredUsers.length)} trên {filteredUsers.length} người dùng
+              </p>
               <div className="pagination">
-                <button className="page-btn">
+                <button 
+                  className="page-btn"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
                   <span className="material-icons">chevron_left</span>
                 </button>
-                <button className="page-btn active">1</button>
-                <button className="page-btn">
+                
+                {[...Array(totalPages)].map((_, index) => {
+                  const pageNumber = index + 1
+                  // Show first page, last page, current page, and pages around current
+                  if (
+                    pageNumber === 1 ||
+                    pageNumber === totalPages ||
+                    (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNumber}
+                        className={`page-btn ${currentPage === pageNumber ? 'active' : ''}`}
+                        onClick={() => handlePageChange(pageNumber)}
+                      >
+                        {pageNumber}
+                      </button>
+                    )
+                  } else if (
+                    pageNumber === currentPage - 2 ||
+                    pageNumber === currentPage + 2
+                  ) {
+                    return <span key={pageNumber} className="page-dots">...</span>
+                  }
+                  return null
+                })}
+                
+                <button 
+                  className="page-btn"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
                   <span className="material-icons">chevron_right</span>
                 </button>
               </div>

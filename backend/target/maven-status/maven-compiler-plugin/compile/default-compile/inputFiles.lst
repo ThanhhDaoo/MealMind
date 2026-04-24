@@ -26,6 +26,7 @@
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/repository/IngredientRepository.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/repository/FoodInstructionRepository.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/service/MealPlanService.java
+/Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/dto/UserDTO.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/dto/AuthResponse.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/dto/MealPlanGenerationRequest.java
 /Users/thanhdao/Documents/MealMind/backend/src/main/java/com/mealapp/controller/AuthController.java
