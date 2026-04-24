@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/foods/**").permitAll()
                 .requestMatchers("/api/promote/**").permitAll() // Temporary for testing
+                .requestMatchers("/api/admin/profile", "/api/admin/change-password").permitAll() // Settings endpoints
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/meal-plans/**").authenticated()
                 .anyRequest().authenticated()

@@ -4,7 +4,8 @@
 body:has(.users-management),
 body:has(.meals-management),
 body:has(.analytics-page),
-body:has(.admin-dashboard) {
+body:has(.admin-dashboard),
+body:has(.settings-page) {
   margin: 0 !important;
   padding: 0 !important;
   overflow-x: hidden !important;
@@ -30,7 +31,8 @@ html {
 .users-management,
 .meals-management,
 .analytics-page,
-.admin-dashboard {
+.admin-dashboard,
+.settings-page {
   min-height: 100vh;
   width: 100%;
   position: relative;
@@ -43,7 +45,8 @@ html {
 .users-main,
 .meals-main,
 .analytics-main,
-.admin-main {
+.admin-main,
+.settings-main {
   margin-left: 256px;
   min-height: 100vh;
   width: calc(100% - 256px);
@@ -55,7 +58,8 @@ html {
 .users-sidebar,
 .meals-sidebar,
 .analytics-sidebar,
-.admin-sidebar {
+.admin-sidebar,
+.settings-sidebar {
   position: fixed;
   left: 0;
   top: 0;
@@ -69,7 +73,8 @@ html {
 .users-header,
 .meals-header,
 .analytics-header,
-.admin-header {
+.admin-header,
+.settings-header {
   position: sticky;
   top: 0;
   z-index: 40;
@@ -81,7 +86,8 @@ html {
 .users-content,
 .meals-content,
 .analytics-content,
-.admin-content {
+.admin-content,
+.settings-content {
   width: 100%;
   margin: 0;
   overflow-x: hidden;
@@ -92,7 +98,8 @@ html {
   .users-main,
   .meals-main,
   .analytics-main,
-  .admin-main {
+  .admin-main,
+  .settings-main {
     margin-left: 0;
     width: 100%;
   }
@@ -100,7 +107,8 @@ html {
   .users-sidebar,
   .meals-sidebar,
   .analytics-sidebar,
-  .admin-sidebar {
+  .admin-sidebar,
+  .settings-sidebar {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
   }
@@ -108,7 +116,8 @@ html {
   .users-sidebar.open,
   .meals-sidebar.open,
   .analytics-sidebar.open,
-  .admin-sidebar.open {
+  .admin-sidebar.open,
+  .settings-sidebar.open {
     transform: translateX(0);
   }
 }
@@ -117,14 +126,16 @@ html {
   .users-sidebar,
   .meals-sidebar,
   .analytics-sidebar,
-  .admin-sidebar {
+  .admin-sidebar,
+  .settings-sidebar {
     width: 220px;
   }
   
   .users-main,
   .meals-main,
   .analytics-main,
-  .admin-main {
+  .admin-main,
+  .settings-main {
     margin-left: 220px;
     width: calc(100% - 220px);
   }

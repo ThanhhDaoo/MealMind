@@ -42,6 +42,27 @@ const Settings = () => {
     weeklyReport: true
   })
 
+  useEffect(() => {
+    fetchCurrentProfile()
+  }, [])
+
+  const fetchCurrentProfile = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/admin/profile')
+      if (response.ok) {
+        const data = await response.json()
+        setProfileData({
+          name: data.name || 'Quản trị viên',
+          email: data.email || 'mealmind@admin.vn',
+          phone: data.phone || '',
+          avatar: data.avatar || 'https://i.pravatar.cc/150?img=68'
+        })
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+    }
+  }
+
   const handleLogout = async () => {
     const confirmed = window.confirm('Bạn có chắc chắn muốn đăng xuất?')
     if (!confirmed) return
@@ -63,9 +84,24 @@ const Settings = () => {
     e.preventDefault()
     try {
       setSaving(true)
-      // TODO: Call API to update profile
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-      alert('Cập nhật thông tin thành công!')
+      const response = await fetch('http://localhost:8080/api/admin/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: profileData.name,
+          email: profileData.email,
+          phone: profileData.phone
+        })
+      })
+      
+      if (response.ok) {
+        alert('Cập nhật thông tin thành công!')
+      } else {
+        const error = await response.text()
+        alert('Có lỗi: ' + error)
+      }
     } catch (error) {
       console.error('Error updating profile:', error)
       alert('Có lỗi khi cập nhật thông tin!')
@@ -89,14 +125,28 @@ const Settings = () => {
 
     try {
       setSaving(true)
-      // TODO: Call API to change password
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-      alert('Đổi mật khẩu thành công!')
-      setPasswordData({
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
+      const response = await fetch('http://localhost:8080/api/admin/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword
+        })
       })
+      
+      if (response.ok) {
+        alert('Đổi mật khẩu thành công!')
+        setPasswordData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: ''
+        })
+      } else {
+        const error = await response.text()
+        alert('Có lỗi: ' + error)
+      }
     } catch (error) {
       console.error('Error changing password:', error)
       alert('Có lỗi khi đổi mật khẩu!')
@@ -284,16 +334,6 @@ const Settings = () => {
                 </div>
                 <form onSubmit={handleProfileUpdate}>
                   <div className="form-grid">
-                    <div className="form-group full-width">
-                      <label>Ảnh đại diện</label>
-                      <div className="avatar-upload">
-                        <img src={profileData.avatar} alt="Avatar" className="avatar-preview" />
-                        <button type="button" className="upload-btn">
-                          <span className="material-icons">photo_camera</span>
-                          Thay đổi ảnh
-                        </button>
-                      </div>
-                    </div>
                     <div className="form-group">
                       <label>Họ và tên *</label>
                       <input

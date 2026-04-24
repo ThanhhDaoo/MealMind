@@ -20,6 +20,7 @@ com/mealapp/model/Ingredient.class
 com/mealapp/controller/AuthController.class
 com/mealapp/repository/MealPlanRepository.class
 com/mealapp/service/MealPlanService.class
+com/mealapp/controller/ChangePasswordRequest.class
 com/mealapp/service/JwtService.class
 com/mealapp/dto/InstructionDTO.class
 com/mealapp/controller/AdminController.class
