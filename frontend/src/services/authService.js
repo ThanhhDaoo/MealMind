@@ -15,16 +15,9 @@ export const authService = {
   },
 
   // Register new user
-  register: async (name, email, password) => {
-    const response = await api.post('/auth/register', { name, email, password })
-    const { token, id, name: userName, email: userEmail, role } = response.data
-    
-    const user = { id, name: userName, email: userEmail, role }
-    
-    localStorage.setItem('authToken', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    
-    return user
+  register: async (userData) => {
+    const response = await api.post('/auth/register', userData)
+    return response.data
   },
 
   // Logout user

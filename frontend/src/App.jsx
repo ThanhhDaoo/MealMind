@@ -7,6 +7,7 @@ import FoodDetail from './pages/FoodDetail'
 import MealPlan from './pages/MealPlan'
 import Favorite from './pages/Favorite'
 import Login from './pages/Login'
+import Register from './pages/Register'
 import AIRecommendationPage from './pages/AIRecommendationPage'
 import AdminDashboard from './pagesAdmin/AdminDashboard'
 import MealsManagement from './pagesAdmin/MealsManagement'
@@ -18,15 +19,15 @@ import './App.css'
 function AppContent() {
   const location = useLocation()
   const isAdminRoute = location.pathname.startsWith('/admin')
-  const isLoginRoute = location.pathname === '/login'
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
 
   console.log('Current path:', location.pathname)
   console.log('Is admin route:', isAdminRoute)
-  console.log('Is login route:', isLoginRoute)
+  console.log('Is auth route:', isAuthRoute)
 
   return (
     <div className="App">
-      {!isAdminRoute && !isLoginRoute && <Navbar />}
+      {!isAdminRoute && !isAuthRoute && <Navbar />}
       <main>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -36,6 +37,7 @@ function AppContent() {
           <Route path="/ai-recommendation" element={<AIRecommendationPage />} />
           <Route path="/favorites" element={<Favorite />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
           
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
@@ -45,7 +47,7 @@ function AppContent() {
           <Route path="/admin/settings" element={<Settings />} />
         </Routes>
       </main>
-      {!isAdminRoute && !isLoginRoute && <Footer />}
+      {!isAdminRoute && !isAuthRoute && <Footer />}
     </div>
   )
 }
