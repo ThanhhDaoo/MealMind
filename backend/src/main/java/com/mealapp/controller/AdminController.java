@@ -1,6 +1,7 @@
 package com.mealapp.controller;
 
 import com.mealapp.dto.FoodDTO;
+import com.mealapp.dto.UserDTO;
 import com.mealapp.model.Food;
 import com.mealapp.model.User;
 import com.mealapp.repository.FoodRepository;
@@ -9,13 +10,15 @@ import com.mealapp.service.FoodService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5174", "http://localhost:5175"})
 public class AdminController {
     
     @Autowired
@@ -32,9 +35,26 @@ public class AdminController {
     
     // User Management
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         List<User> users = userRepository.findAll();
-        return ResponseEntity.ok(users);
+        // Convert to DTO immediately to avoid lazy loading issues
+        List<UserDTO> userDTOs = users.stream()
+                .map(user -> {
+                    UserDTO dto = new UserDTO();
+                    dto.setId(user.getId());
+                    dto.setName(user.getName());
+                    dto.setEmail(user.getEmail());
+                    dto.setRole(user.getRole());
+                    dto.setStatus(user.getStatus());
+                    dto.setAvatar(user.getAvatar());
+                    dto.setPhone(user.getPhone());
+                    dto.setCreatedAt(user.getCreatedAt());
+                    dto.setLastLogin(user.getLastLogin());
+                    return dto;
+                })
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDTOs);
     }
     
     @GetMapping("/users/{id}")
@@ -95,6 +115,16 @@ public class AdminController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         userRepository.delete(user);
         return ResponseEntity.noContent().build();
+    }
+    
+    // Temporary endpoint to promote user to admin - REMOVE IN PRODUCTION
+    @PostMapping("/users/{id}/promote")
+    public ResponseEntity<User> promoteToAdmin(@PathVariable Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setRole("ADMIN");
+        User updatedUser = userRepository.save(user);
+        return ResponseEntity.ok(updatedUser);
     }
     
     // Food Management

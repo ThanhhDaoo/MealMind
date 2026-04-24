@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import './MealModal.css'
 import './UserModal.css'
 
 const UserModal = ({ isOpen, onClose, user, onSave }) => {

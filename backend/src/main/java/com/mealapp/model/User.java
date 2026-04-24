@@ -1,9 +1,12 @@
 package com.mealapp.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,6 +20,8 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"mealPlans", "favoriteFoods"})
+@EqualsAndHashCode(exclude = {"mealPlans", "favoriteFoods"})
 public class User {
     
     @Id
@@ -78,14 +83,16 @@ public class User {
     private LocalDateTime updatedAt;
     
     // Relationships
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
     private Set<MealPlan> mealPlans = new HashSet<>();
     
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_favorite_foods",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "food_id")
     )
+    @JsonIgnore
     private Set<Food> favoriteFoods = new HashSet<>();
 }
