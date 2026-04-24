@@ -36,6 +36,9 @@ public class AdminController {
     @Autowired
     private com.mealapp.repository.MealPlanRepository mealPlanRepository;
     
+    @Autowired
+    private com.mealapp.service.JwtService jwtService;
+    
     // User Management
     @GetMapping("/users")
     @Transactional(readOnly = true)
@@ -188,6 +191,105 @@ public class AdminController {
         List<com.mealapp.model.MealPlan> mealPlans = mealPlanRepository.findAll();
         return ResponseEntity.ok(mealPlans);
     }
+    
+    // Settings - Get current admin profile (simplified version)
+    @GetMapping("/profile")
+    public ResponseEntity<UserDTO> getCurrentProfile() {
+        try {
+            // For now, get the first admin user (can be improved later)
+            User user = userRepository.findByRole("ADMIN").stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            UserDTO dto = new UserDTO();
+            dto.setId(user.getId());
+            dto.setName(user.getName());
+            dto.setEmail(user.getEmail());
+            dto.setPhone(user.getPhone());
+            dto.setRole(user.getRole());
+            dto.setStatus(user.getStatus());
+            dto.setAvatar(user.getAvatar());
+            
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting profile: " + e.getMessage());
+        }
+    }
+    
+    // Settings - Update profile (simplified version)
+    @PutMapping("/profile")
+    public ResponseEntity<UserDTO> updateProfile(@RequestBody UserDTO profileUpdate) {
+        try {
+            // For now, update the first admin user
+            User user = userRepository.findByRole("ADMIN").stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            // Update allowed fields
+            if (profileUpdate.getName() != null) {
+                user.setName(profileUpdate.getName());
+            }
+            if (profileUpdate.getPhone() != null) {
+                user.setPhone(profileUpdate.getPhone());
+            }
+            // Email update requires additional validation
+            if (profileUpdate.getEmail() != null && !profileUpdate.getEmail().equals(user.getEmail())) {
+                if (userRepository.findByEmail(profileUpdate.getEmail()).isPresent()) {
+                    throw new RuntimeException("Email already exists");
+                }
+                user.setEmail(profileUpdate.getEmail());
+            }
+            
+            User savedUser = userRepository.save(user);
+            
+            UserDTO dto = new UserDTO();
+            dto.setId(savedUser.getId());
+            dto.setName(savedUser.getName());
+            dto.setEmail(savedUser.getEmail());
+            dto.setPhone(savedUser.getPhone());
+            dto.setRole(savedUser.getRole());
+            dto.setStatus(savedUser.getStatus());
+            
+            return ResponseEntity.ok(dto);
+        } catch (Exception e) {
+            throw new RuntimeException("Error updating profile: " + e.getMessage());
+        }
+    }
+    
+    // Settings - Change password (simplified version)
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        try {
+            // For now, update the first admin user
+            User user = userRepository.findByRole("ADMIN").stream()
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            
+            // Verify current password
+            if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+                throw new RuntimeException("Current password is incorrect");
+            }
+            
+            // Update to new password
+            user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+            userRepository.save(user);
+            
+            return ResponseEntity.ok("Password changed successfully");
+        } catch (Exception e) {
+            throw new RuntimeException("Error changing password: " + e.getMessage());
+        }
+    }
+}
+
+class ChangePasswordRequest {
+    private String currentPassword;
+    private String newPassword;
+    
+    public String getCurrentPassword() { return currentPassword; }
+    public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
+    
+    public String getNewPassword() { return newPassword; }
+    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
 }
 
 class DashboardStats {
