@@ -1,8 +1,11 @@
 package com.mealapp.service;
 
 import com.mealapp.dto.MealPlanGenerationRequest;
+import com.mealapp.model.Food;
 import com.mealapp.model.MealPlan;
+import com.mealapp.model.MealPlanItem;
 import com.mealapp.model.User;
+import com.mealapp.repository.FoodRepository;
 import com.mealapp.repository.MealPlanRepository;
 import com.mealapp.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,9 @@ public class MealPlanService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private FoodRepository foodRepository;
     
     @Autowired
     private AiService aiService;
@@ -90,5 +96,42 @@ public class MealPlanService {
         return mealPlan.getItems().stream()
                 .mapToInt(item -> item.getFood().getCalories() * item.getServings())
                 .sum();
+    }
+    
+    // Add food to meal plan
+    public MealPlan addFoodToMealPlan(Long mealPlanId, String mealType, Long foodId, String dayOfWeek) {
+        MealPlan mealPlan = getMealPlanById(mealPlanId);
+        
+        // Create new meal plan item
+        MealPlanItem item = new MealPlanItem();
+        item.setMealPlan(mealPlan);
+        item.setMealType(mealType);
+        item.setDayOfWeek(dayOfWeek);
+        item.setServings(1);
+        
+        // Get food from repository
+        Food food = foodRepository.findById(foodId)
+                .orElseThrow(() -> new RuntimeException("Food not found with id: " + foodId));
+        item.setFood(food);
+        
+        // Add to meal plan
+        mealPlan.getItems().add(item);
+        
+        // Recalculate total calories
+        mealPlan.setTotalCalories(calculateTotalCalories(mealPlan));
+        
+        return mealPlanRepository.save(mealPlan);
+    }
+    
+    // Remove food from meal plan
+    public void removeFoodFromMealPlan(Long mealPlanId, Long mealItemId) {
+        MealPlan mealPlan = getMealPlanById(mealPlanId);
+        
+        mealPlan.getItems().removeIf(item -> item.getId().equals(mealItemId));
+        
+        // Recalculate total calories
+        mealPlan.setTotalCalories(calculateTotalCalories(mealPlan));
+        
+        mealPlanRepository.save(mealPlan);
     }
 }

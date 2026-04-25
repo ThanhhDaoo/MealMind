@@ -44,10 +44,11 @@ export const mealPlanService = {
   },
 
   // Add food to meal plan
-  addFoodToMealPlan: async (mealPlanId, mealType, foodId) => {
+  addFoodToMealPlan: async (mealPlanId, mealType, foodId, dayOfWeek) => {
     const response = await api.post(`/meal-plans/${mealPlanId}/meals`, {
       mealType,
-      foodId
+      foodId,
+      dayOfWeek
     })
     return response.data
   },

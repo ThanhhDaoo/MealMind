@@ -60,6 +60,6 @@ public class MealPlan {
     private LocalDateTime updatedAt;
     
     // Relationships
-    @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "mealPlan", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<MealPlanItem> items = new ArrayList<>();
 }

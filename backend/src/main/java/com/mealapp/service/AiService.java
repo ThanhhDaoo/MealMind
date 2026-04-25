@@ -24,55 +24,133 @@ public class AiService {
     // Generate meal plan using AI (simplified version)
     public MealPlan generateMealPlan(User user, MealPlanGenerationRequest request) {
         MealPlan mealPlan = new MealPlan();
-        mealPlan.setName("AI Generated Plan - " + request.getDate());
-        mealPlan.setWeekStartDate(request.getDate());
-        mealPlan.setWeekEndDate(request.getDate().plusDays(6));
+        mealPlan.setName("AI Generated Plan - " + request.getWeekStartDate());
+        mealPlan.setWeekStartDate(request.getWeekStartDate());
+        mealPlan.setWeekEndDate(request.getWeekStartDate().plusDays(6));
         mealPlan.setUser(user);
+        mealPlan.setStatus("ACTIVE");
         
         List<MealPlanItem> mealItems = new ArrayList<>();
         
         // Get all available foods
         List<Food> allFoods = foodRepository.findAll();
         
-        // Generate breakfast items
-        List<Food> breakfastFoods = getRandomFoods(allFoods, 2);
-        for (Food food : breakfastFoods) {
-            MealPlanItem item = new MealPlanItem();
-            item.setMealType("BREAKFAST");
-            item.setFood(food);
-            item.setMealPlan(mealPlan);
-            mealItems.add(item);
+        if (allFoods.isEmpty()) {
+            throw new RuntimeException("No foods available in database");
         }
         
-        // Generate lunch items
-        List<Food> lunchFoods = getRandomFoods(allFoods, 3);
-        for (Food food : lunchFoods) {
-            MealPlanItem item = new MealPlanItem();
-            item.setMealType("LUNCH");
-            item.setFood(food);
-            item.setMealPlan(mealPlan);
-            mealItems.add(item);
+        // Filter foods based on dietary preferences if provided
+        List<Food> filteredFoods = allFoods;
+        if (request.getDietaryPreferences() != null && !request.getDietaryPreferences().isEmpty()) {
+            filteredFoods = filterFoodsByPreferences(allFoods, request.getDietaryPreferences());
         }
         
-        // Generate dinner items
-        List<Food> dinnerFoods = getRandomFoods(allFoods, 3);
-        for (Food food : dinnerFoods) {
-            MealPlanItem item = new MealPlanItem();
-            item.setMealType("DINNER");
-            item.setFood(food);
-            item.setMealPlan(mealPlan);
-            mealItems.add(item);
+        // If no foods match preferences, use all foods
+        if (filteredFoods.isEmpty()) {
+            filteredFoods = allFoods;
+        }
+        
+        // Days of week
+        String[] daysOfWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+        
+        // Generate meals for each day
+        for (String day : daysOfWeek) {
+            // Breakfast
+            Food breakfastFood = getRandomFood(filteredFoods);
+            MealPlanItem breakfastItem = new MealPlanItem();
+            breakfastItem.setMealType("BREAKFAST");
+            breakfastItem.setDayOfWeek(day);
+            breakfastItem.setFood(breakfastFood);
+            breakfastItem.setServings(1);
+            breakfastItem.setMealPlan(mealPlan);
+            mealItems.add(breakfastItem);
+            
+            // Lunch
+            Food lunchFood = getRandomFood(filteredFoods);
+            MealPlanItem lunchItem = new MealPlanItem();
+            lunchItem.setMealType("LUNCH");
+            lunchItem.setDayOfWeek(day);
+            lunchItem.setFood(lunchFood);
+            lunchItem.setServings(1);
+            lunchItem.setMealPlan(mealPlan);
+            mealItems.add(lunchItem);
+            
+            // Dinner
+            Food dinnerFood = getRandomFood(filteredFoods);
+            MealPlanItem dinnerItem = new MealPlanItem();
+            dinnerItem.setMealType("DINNER");
+            dinnerItem.setDayOfWeek(day);
+            dinnerItem.setFood(dinnerFood);
+            dinnerItem.setServings(1);
+            dinnerItem.setMealPlan(mealPlan);
+            mealItems.add(dinnerItem);
         }
         
         mealPlan.setItems(mealItems);
         
         // Calculate total calories
         int totalCalories = mealItems.stream()
-                .mapToInt(item -> item.getFood().getCalories())
+                .mapToInt(item -> item.getFood().getCalories() * item.getServings())
                 .sum();
         mealPlan.setTotalCalories(totalCalories);
         
         return mealPlan;
+    }
+    
+    // Filter foods by dietary preferences
+    private List<Food> filterFoodsByPreferences(List<Food> foods, List<String> preferences) {
+        List<Food> filtered = new ArrayList<>(foods);
+        
+        for (String preference : preferences) {
+            if (preference == null || preference.trim().isEmpty()) {
+                continue;
+            }
+            
+            String pref = preference.toLowerCase().trim();
+            
+            // Filter by diet type
+            if (pref.contains("keto")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getDietType() != null && 
+                           (f.getDietType().toLowerCase().contains("keto") || 
+                            f.getDietType().toLowerCase().contains("low carb")))
+                    .collect(java.util.stream.Collectors.toList());
+            } else if (pref.contains("vegan") || pref.contains("chay")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getDietType() != null && 
+                           f.getDietType().toLowerCase().contains("vegetarian"))
+                    .collect(java.util.stream.Collectors.toList());
+            } else if (pref.contains("low-carb") || pref.contains("ít carb")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getCarbs() != null && f.getCarbs() < 30)
+                    .collect(java.util.stream.Collectors.toList());
+            } else if (pref.contains("high protein") || pref.contains("protein cao")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getProtein() != null && f.getProtein() > 20)
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Filter by preparation time
+            if (pref.contains("nhanh") || pref.contains("15 phút") || pref.contains("20 phút")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getTotalTime() != null && f.getTotalTime() <= 20)
+                    .collect(java.util.stream.Collectors.toList());
+            }
+            
+            // Filter by calories
+            if (pref.contains("ít calories") || pref.contains("low calorie")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getCalories() != null && f.getCalories() < 400)
+                    .collect(java.util.stream.Collectors.toList());
+            }
+        }
+        
+        return filtered;
+    }
+    
+    // Get a random food from the list
+    private Food getRandomFood(List<Food> foods) {
+        return foods.get(random.nextInt(foods.size()));
     }
     
     // Get random foods from the list

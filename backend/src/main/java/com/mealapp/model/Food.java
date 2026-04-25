@@ -36,6 +36,7 @@ public class Food {
     private String description;
     
     @Column(length = 500)
+    @com.fasterxml.jackson.annotation.JsonProperty("imageUrl")
     private String image;
     
     private Integer calories;
