@@ -82,4 +82,43 @@ public class MealPlanController {
         Page<MealPlan> history = mealPlanService.getMealPlanHistory(userId, pageable);
         return ResponseEntity.ok(history);
     }
+    
+    // Add food to meal plan
+    @PostMapping("/{mealPlanId}/meals")
+    public ResponseEntity<MealPlan> addFoodToMealPlan(
+            @PathVariable Long mealPlanId,
+            @RequestBody AddMealRequest request) {
+        MealPlan updatedPlan = mealPlanService.addFoodToMealPlan(
+            mealPlanId, 
+            request.getMealType(), 
+            request.getFoodId(),
+            request.getDayOfWeek()
+        );
+        return ResponseEntity.ok(updatedPlan);
+    }
+    
+    // Remove food from meal plan
+    @DeleteMapping("/{mealPlanId}/meals/{mealItemId}")
+    public ResponseEntity<Void> removeFoodFromMealPlan(
+            @PathVariable Long mealPlanId,
+            @PathVariable Long mealItemId) {
+        mealPlanService.removeFoodFromMealPlan(mealPlanId, mealItemId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    // Inner class for request body
+    public static class AddMealRequest {
+        private String mealType;
+        private Long foodId;
+        private String dayOfWeek;
+        
+        public String getMealType() { return mealType; }
+        public void setMealType(String mealType) { this.mealType = mealType; }
+        
+        public Long getFoodId() { return foodId; }
+        public void setFoodId(Long foodId) { this.foodId = foodId; }
+        
+        public String getDayOfWeek() { return dayOfWeek; }
+        public void setDayOfWeek(String dayOfWeek) { this.dayOfWeek = dayOfWeek; }
+    }
 }

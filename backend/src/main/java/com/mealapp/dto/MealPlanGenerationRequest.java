@@ -6,13 +6,7 @@ import java.util.List;
 
 @Data
 public class MealPlanGenerationRequest {
-    private LocalDate date;
-    private MealPlanPreferences preferences;
-}
-
-@Data
-class MealPlanPreferences {
-    private Integer calories;
-    private String diet;
-    private List<String> allergies;
+    private LocalDate weekStartDate;
+    private Integer caloriesPerDay;
+    private List<String> dietaryPreferences;
 }

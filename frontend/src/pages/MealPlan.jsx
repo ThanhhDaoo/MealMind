@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { mealPlanService } from '../services/mealPlanService'
+import { foodService } from '../services/foodService'
 import './MealPlan.css'
 
 const MealPlan = () => {
@@ -13,6 +14,12 @@ const MealPlan = () => {
   
   const [shoppingList, setShoppingList] = useState([])
   const [weekStartDate, setWeekStartDate] = useState(getMonday(new Date()))
+  
+  // Modal state
+  const [showFoodModal, setShowFoodModal] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState(null) // { mealType, dayIndex }
+  const [availableFoods, setAvailableFoods] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
   const daysOfWeekVN = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN']
@@ -112,6 +119,54 @@ const MealPlan = () => {
     setShoppingList(list)
   }
 
+  const openAddMealModal = async (mealType, dayIndex) => {
+    setSelectedSlot({ mealType, dayIndex })
+    setShowFoodModal(true)
+    
+    // Load available foods
+    try {
+      const response = await foodService.getAllFoods({ page: 0, size: 50 })
+      setAvailableFoods(response.content || [])
+    } catch (error) {
+      console.error('Error loading foods:', error)
+    }
+  }
+
+  const addMealToSlot = async (food) => {
+    if (!selectedSlot) return
+    
+    try {
+      // Create meal plan if doesn't exist
+      let planId = mealPlan?.id
+      
+      if (!planId) {
+        const newPlan = await mealPlanService.createMealPlan({
+          name: `Kế hoạch tuần ${weekStartDate.toLocaleDateString('vi-VN')}`,
+          weekStartDate: weekStartDate.toISOString().split('T')[0],
+          weekEndDate: new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          status: 'ACTIVE'
+        })
+        planId = newPlan.id
+        setMealPlan(newPlan)
+      }
+      
+      // Add food to meal plan
+      const dayOfWeek = daysOfWeek[selectedSlot.dayIndex]
+      const mealType = selectedSlot.mealType.toUpperCase()
+      
+      await mealPlanService.addFoodToMealPlan(planId, mealType, food.id, dayOfWeek)
+      
+      // Reload meal plan
+      await loadMealPlan()
+      
+      setShowFoodModal(false)
+      setSelectedSlot(null)
+    } catch (error) {
+      console.error('Error adding meal:', error)
+      alert('Không thể thêm món ăn. Vui lòng thử lại.')
+    }
+  }
+
   const removeMealFromDay = async (mealType, dayIndex) => {
     const meal = weekPlan[mealType][dayIndex]
     if (!meal) return
@@ -173,6 +228,71 @@ const MealPlan = () => {
   const totalCalories = mealPlan?.totalCalories || 0
   const avgCaloriesPerDay = mealPlan ? Math.round(totalCalories / 7) : 0
   const totalProtein = mealPlan ? Math.round(avgCaloriesPerDay * 0.25 / 4) : 0
+
+  // Generate AI recommendation based on meal plan analysis
+  const getAIRecommendation = () => {
+    if (!mealPlan || !mealPlan.items || mealPlan.items.length === 0) {
+      return "Hãy tạo kế hoạch ăn uống để nhận gợi ý từ AI!"
+    }
+
+    const items = mealPlan.items
+    const totalMeals = items.length
+    const avgCalories = avgCaloriesPerDay
+
+    // Analyze meal variety
+    const uniqueFoods = new Set(items.map(item => item.food.id)).size
+    const varietyRatio = uniqueFoods / totalMeals
+
+    // Analyze calories
+    if (avgCalories < 1500) {
+      return "Kế hoạch của bạn có thể thiếu năng lượng. Tôi gợi ý thêm các món giàu protein như trứng, thịt gà hoặc cá để tăng cường sức khỏe!"
+    } else if (avgCalories > 2500) {
+      return "Kế hoạch có nhiều calories. Hãy cân nhắc thêm rau xanh và giảm món chiên rán để cân bằng dinh dưỡng hơn!"
+    }
+
+    // Analyze variety
+    if (varietyRatio < 0.5) {
+      return "Bạn đang ăn lặp lại nhiều món. Tôi gợi ý thay đổi thực đơn để cung cấp đa dạng dinh dưỡng và tránh nhàm chán!"
+    }
+
+    // Check for missing meal types
+    const breakfastCount = items.filter(i => i.mealType === 'BREAKFAST').length
+    const lunchCount = items.filter(i => i.mealType === 'LUNCH').length
+    const dinnerCount = items.filter(i => i.mealType === 'DINNER').length
+
+    if (breakfastCount < 5) {
+      return "Bạn đang bỏ bữa sáng! Bữa sáng rất quan trọng. Tôi gợi ý thêm smoothie bowl, yến mạch hoặc trứng để bắt đầu ngày tràn đầy năng lượng!"
+    }
+
+    if (lunchCount < 5) {
+      return "Thiếu bữa trưa có thể làm giảm năng suất. Hãy thêm salad, cơm gà hoặc poke bowl để duy trì năng lượng suốt cả ngày!"
+    }
+
+    // Seasonal recommendations
+    const currentMonth = new Date().getMonth()
+    if (currentMonth >= 5 && currentMonth <= 8) { // Summer
+      return "Mùa hè này hãy thêm nhiều trái cây tươi, smoothie và salad mát lạnh để giải nhiệt và bổ sung vitamin C!"
+    } else if (currentMonth >= 11 || currentMonth <= 1) { // Winter
+      return "Mùa đông nên ăn nhiều súp nóng, món hầm và thực phẩm giàu vitamin D để tăng cường đề kháng!"
+    }
+
+    // Default positive recommendation
+    const recommendations = [
+      "Kế hoạch ăn của bạn khá cân bằng! Để tối ưu hơn, hãy thêm các loại hạt như hạnh nhân, óc chó để bổ sung omega-3!",
+      "Thực đơn của bạn đang rất tốt! Tôi gợi ý thêm rau củ màu sẫm như cải bó xôi, cà rốt để tăng chất chống oxi hóa!",
+      "Bạn đang làm rất tốt! Hãy nhớ uống đủ nước (2-3 lít/ngày) và thêm trái cây giàu vitamin C như cam, kiwi!",
+      "Kế hoạch dinh dưỡng hợp lý! Để hoàn thiện hơn, thử thêm cá hồi hoặc cá thu 2-3 lần/tuần để bổ sung omega-3!"
+    ]
+    
+    return recommendations[Math.floor(Math.random() * recommendations.length)]
+  }
+
+  const aiRecommendation = getAIRecommendation()
+
+  // Filter foods by search
+  const filteredFoods = availableFoods.filter(food => 
+    food.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   if (loading) {
     return (
@@ -240,7 +360,7 @@ const MealPlan = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="add-meal-btn">
+                  <button className="add-meal-btn" onClick={() => openAddMealModal('breakfast', dayIdx)}>
                     <span className="icon">+</span>
                     <span className="label">Thêm món</span>
                   </button>
@@ -267,7 +387,7 @@ const MealPlan = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="add-meal-btn">
+                  <button className="add-meal-btn" onClick={() => openAddMealModal('lunch', dayIdx)}>
                     <span className="icon">+</span>
                     <span className="label">Thêm món</span>
                   </button>
@@ -294,7 +414,7 @@ const MealPlan = () => {
                     </button>
                   </div>
                 ) : (
-                  <button className="add-meal-btn">
+                  <button className="add-meal-btn" onClick={() => openAddMealModal('dinner', dayIdx)}>
                     <span className="icon">+</span>
                     <span className="label">Thêm món</span>
                   </button>
@@ -378,10 +498,49 @@ const MealPlan = () => {
               <span className="ai-icon">🤖</span>
               <span className="ai-badge">AI Mách Bạn</span>
             </div>
-            <p>"Tuần này bạn đang thiếu Vitamin C. Tôi gợi ý thêm một bữa xế với Cam hoặc Kiwi để tăng cường đề kháng!"</p>
+            <p>"{aiRecommendation}"</p>
           </div>
         </div>
       </div>
+
+      {/* Food Selection Modal */}
+      {showFoodModal && (
+        <div className="modal-overlay" onClick={() => setShowFoodModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Chọn món ăn</h2>
+              <button className="modal-close" onClick={() => setShowFoodModal(false)}>×</button>
+            </div>
+            
+            <div className="modal-search">
+              <input 
+                type="text" 
+                placeholder="Tìm kiếm món ăn..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="modal-food-list">
+              {filteredFoods.length > 0 ? (
+                filteredFoods.map(food => (
+                  <div key={food.id} className="food-item" onClick={() => addMealToSlot(food)}>
+                    <img src={food.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100'} alt={food.name} />
+                    <div className="food-info">
+                      <h4>{food.name}</h4>
+                      <p>{food.calories} kcal</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p style={{ textAlign: 'center', color: '#999', padding: '2rem' }}>
+                  Không tìm thấy món ăn
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
