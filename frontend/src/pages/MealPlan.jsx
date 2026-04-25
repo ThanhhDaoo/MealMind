@@ -1,71 +1,132 @@
 import { useState, useEffect } from 'react'
+import { mealPlanService } from '../services/mealPlanService'
 import './MealPlan.css'
 
 const MealPlan = () => {
+  const [mealPlan, setMealPlan] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [weekPlan, setWeekPlan] = useState({
-    breakfast: [
-      { id: 1, name: 'Smoothie yến mạch', image: 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=200' },
-      null,
-      { id: 3, name: 'Bánh mì quả bơ', image: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=200' },
-      null,
-      { id: 5, name: 'Yogurt Hy Lạp', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200' },
-      null,
-      { id: 7, name: 'Trứng khuấy thảo mộc', image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=200' }
-    ],
-    lunch: [
-      null,
-      { id: 2, name: 'Salad cá hồi', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200' },
-      { id: 3, name: 'Bowl ngũ cốc', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200' },
-      null,
-      { id: 5, name: 'Súp gà rau củ', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200' },
-      null,
-      { id: 7, name: 'Ức gà áp chảo', image: 'https://images.unsplash.com/photo-1598103442097-8b74394b95c6?w=200' }
-    ],
-    dinner: [
-      { id: 1, name: 'Bít tết thảo mộc', image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200' },
-      null,
-      null,
-      { id: 4, name: 'Cá hấp gừng', image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200' },
-      null,
-      { id: 6, name: 'Salad tổng hợp', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200' },
-      null
-    ]
+    breakfast: Array(7).fill(null),
+    lunch: Array(7).fill(null),
+    dinner: Array(7).fill(null)
   })
   
-  const [shoppingList, setShoppingList] = useState([
-    { name: 'Ức gà', amount: '2kg', checked: true },
-    { name: 'Cá hồi', amount: '500g', checked: false },
-    { name: 'Súp lơ xanh', amount: '2 cây', checked: false },
-    { name: 'Dầu ô-liu', amount: '1 chai', checked: false }
-  ])
+  const [shoppingList, setShoppingList] = useState([])
+  const [weekStartDate, setWeekStartDate] = useState(getMonday(new Date()))
 
-  const daysOfWeek = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN']
-  const meals = ['Bữa sáng', 'Bữa trưa', 'Bữa tối']
+  const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const daysOfWeekVN = ['Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7', 'CN']
 
-  const sampleMeals = [
-    { id: 1, name: 'Smoothie yến mạch', image: 'https://images.unsplash.com/photo-1505252585461-04db1eb84625?w=200', meal: 'breakfast' },
-    { id: 2, name: 'Bánh mì quả bơ', image: 'https://images.unsplash.com/photo-1541519227354-08fa5d50c44d?w=200', meal: 'breakfast' },
-    { id: 3, name: 'Yogurt Hy Lạp', image: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=200', meal: 'breakfast' },
-    { id: 4, name: 'Salad cá hồi', image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200', meal: 'lunch' },
-    { id: 5, name: 'Bowl ngũ cốc', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200', meal: 'lunch' },
-    { id: 6, name: 'Súp gà rau củ', image: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?w=200', meal: 'lunch' },
-    { id: 7, name: 'Bò lát thảo mộc', image: 'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?w=200', meal: 'dinner' },
-    { id: 8, name: 'Cá hấp gừng', image: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=200', meal: 'dinner' },
-    { id: 9, name: 'Salad tổng hợp', image: 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=200', meal: 'dinner' }
-  ]
-
-  const addMealToDay = (mealType, dayIndex, meal) => {
-    setWeekPlan(prev => ({
-      ...prev,
-      [mealType]: prev[mealType].map((item, idx) => idx === dayIndex ? meal : item)
-    }))
+  // Get Monday of current week
+  function getMonday(date) {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+    return new Date(d.setDate(diff))
   }
 
-  const removeMealFromDay = (mealType, dayIndex) => {
-    setWeekPlan(prev => ({
-      ...prev,
-      [mealType]: prev[mealType].map((item, idx) => idx === dayIndex ? null : item)
+  // Load meal plan data
+  useEffect(() => {
+    loadMealPlan()
+  }, [weekStartDate])
+
+  const loadMealPlan = async () => {
+    try {
+      setLoading(true)
+      const dateStr = weekStartDate.toISOString().split('T')[0]
+      const plans = await mealPlanService.getMealPlansByDate(dateStr)
+      
+      if (plans && plans.length > 0) {
+        const plan = plans[0]
+        setMealPlan(plan)
+        
+        // Organize items by day and meal type
+        const organized = {
+          breakfast: Array(7).fill(null),
+          lunch: Array(7).fill(null),
+          dinner: Array(7).fill(null)
+        }
+        
+        plan.items.forEach(item => {
+          const dayIndex = daysOfWeek.indexOf(item.dayOfWeek)
+          const mealType = item.mealType.toLowerCase()
+          
+          if (dayIndex !== -1 && organized[mealType]) {
+            organized[mealType][dayIndex] = {
+              id: item.id,
+              name: item.food.name,
+              image: item.food.imageUrl || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200',
+              calories: item.food.calories,
+              foodId: item.food.id
+            }
+          }
+        })
+        
+        setWeekPlan(organized)
+        
+        // Generate shopping list
+        generateShoppingList(plan.items)
+      } else {
+        // No meal plan for this week
+        setWeekPlan({
+          breakfast: Array(7).fill(null),
+          lunch: Array(7).fill(null),
+          dinner: Array(7).fill(null)
+        })
+        setShoppingList([])
+      }
+    } catch (error) {
+      console.error('Error loading meal plan:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const generateShoppingList = (items) => {
+    const ingredients = {}
+    
+    items.forEach(item => {
+      if (item.food && item.food.ingredients) {
+        item.food.ingredients.forEach(ing => {
+          const key = ing.name
+          if (ingredients[key]) {
+            ingredients[key].amount += parseFloat(ing.amount) || 0
+          } else {
+            ingredients[key] = {
+              name: ing.name,
+              amount: parseFloat(ing.amount) || 0,
+              unit: ing.unit,
+              checked: false
+            }
+          }
+        })
+      }
+    })
+    
+    const list = Object.values(ingredients).map(ing => ({
+      name: ing.name,
+      amount: `${ing.amount}${ing.unit}`,
+      checked: false
     }))
+    
+    setShoppingList(list)
+  }
+
+  const removeMealFromDay = async (mealType, dayIndex) => {
+    const meal = weekPlan[mealType][dayIndex]
+    if (!meal) return
+    
+    try {
+      await mealPlanService.removeFoodFromMealPlan(mealPlan.id, meal.id)
+      
+      setWeekPlan(prev => ({
+        ...prev,
+        [mealType]: prev[mealType].map((item, idx) => idx === dayIndex ? null : item)
+      }))
+    } catch (error) {
+      console.error('Error removing meal:', error)
+      alert('Không thể xóa món ăn. Vui lòng thử lại.')
+    }
   }
 
   const toggleShoppingItem = (index) => {
@@ -74,8 +135,54 @@ const MealPlan = () => {
     ))
   }
 
-  const totalCalories = 1850
-  const totalProtein = 120
+  const handleGenerateMealPlan = async () => {
+    try {
+      setLoading(true)
+      const request = {
+        weekStartDate: weekStartDate.toISOString().split('T')[0],
+        caloriesPerDay: 2000,
+        dietaryPreferences: []
+      }
+      
+      const newPlan = await mealPlanService.generateMealPlan(request)
+      await loadMealPlan()
+      alert('Đã tạo kế hoạch ăn uống mới!')
+    } catch (error) {
+      console.error('Error generating meal plan:', error)
+      alert('Không thể tạo kế hoạch. Vui lòng thử lại.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleClearAll = async () => {
+    if (!mealPlan) return
+    
+    if (window.confirm('Bạn có chắc muốn xóa toàn bộ kế hoạch tuần này?')) {
+      try {
+        await mealPlanService.deleteMealPlan(mealPlan.id)
+        await loadMealPlan()
+      } catch (error) {
+        console.error('Error clearing meal plan:', error)
+        alert('Không thể xóa kế hoạch. Vui lòng thử lại.')
+      }
+    }
+  }
+
+  // Calculate stats
+  const totalCalories = mealPlan?.totalCalories || 0
+  const avgCaloriesPerDay = mealPlan ? Math.round(totalCalories / 7) : 0
+  const totalProtein = mealPlan ? Math.round(avgCaloriesPerDay * 0.25 / 4) : 0
+
+  if (loading) {
+    return (
+      <div className="meal-plan-container">
+        <div style={{ textAlign: 'center', padding: '3rem' }}>
+          <p>Đang tải kế hoạch...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="meal-plan-container">
@@ -86,11 +193,11 @@ const MealPlan = () => {
           <p>Cân bằng vị giác và sức khỏe với sự hỗ trợ từ AI của MealMind.</p>
         </div>
         <div className="header-actions">
-          <button className="btn-refresh">
+          <button className="btn-refresh" onClick={handleClearAll}>
             <span>🔄</span>
             Xóa tất cả
           </button>
-          <button className="btn-generate">
+          <button className="btn-generate" onClick={handleGenerateMealPlan}>
             <span>⚡</span>
             Tạo plan tự động
           </button>
@@ -103,11 +210,16 @@ const MealPlan = () => {
           <div className="meal-table-wrapper">
             {/* Header Row */}
             <div className="meal-row-label">Buổi</div>
-            {daysOfWeek.map((day, idx) => (
-              <div key={idx} className={`day-header ${idx === 0 ? 'active' : ''}`}>
-                {day}
-              </div>
-            ))}
+            {daysOfWeekVN.map((day, idx) => {
+              const date = new Date(weekStartDate)
+              date.setDate(date.getDate() + idx)
+              return (
+                <div key={idx} className={`day-header ${idx === new Date().getDay() - 1 ? 'active' : ''}`}>
+                  <span className="day-name">{day}</span>
+                  <span className="day-number">{date.getDate()}</span>
+                </div>
+              )
+            })}
 
             {/* Breakfast Row */}
             <div className="meal-row-label">Bữa sáng</div>
@@ -116,7 +228,10 @@ const MealPlan = () => {
                 {meal ? (
                   <div className="meal-item">
                     <img src={meal.image} alt={meal.name} />
-                    <span>{meal.name}</span>
+                    <div className="meal-item-info">
+                      <span className="meal-item-name">{meal.name}</span>
+                      <span className="meal-item-calories">{meal.calories} kcal</span>
+                    </div>
                     <button 
                       className="remove-btn"
                       onClick={() => removeMealFromDay('breakfast', dayIdx)}
@@ -126,7 +241,8 @@ const MealPlan = () => {
                   </div>
                 ) : (
                   <button className="add-meal-btn">
-                    <span>+</span>
+                    <span className="icon">+</span>
+                    <span className="label">Thêm món</span>
                   </button>
                 )}
               </div>
@@ -139,7 +255,10 @@ const MealPlan = () => {
                 {meal ? (
                   <div className="meal-item">
                     <img src={meal.image} alt={meal.name} />
-                    <span>{meal.name}</span>
+                    <div className="meal-item-info">
+                      <span className="meal-item-name">{meal.name}</span>
+                      <span className="meal-item-calories">{meal.calories} kcal</span>
+                    </div>
                     <button 
                       className="remove-btn"
                       onClick={() => removeMealFromDay('lunch', dayIdx)}
@@ -149,7 +268,8 @@ const MealPlan = () => {
                   </div>
                 ) : (
                   <button className="add-meal-btn">
-                    <span>+</span>
+                    <span className="icon">+</span>
+                    <span className="label">Thêm món</span>
                   </button>
                 )}
               </div>
@@ -162,7 +282,10 @@ const MealPlan = () => {
                 {meal ? (
                   <div className="meal-item">
                     <img src={meal.image} alt={meal.name} />
-                    <span>{meal.name}</span>
+                    <div className="meal-item-info">
+                      <span className="meal-item-name">{meal.name}</span>
+                      <span className="meal-item-calories">{meal.calories} kcal</span>
+                    </div>
                     <button 
                       className="remove-btn"
                       onClick={() => removeMealFromDay('dinner', dayIdx)}
@@ -172,7 +295,8 @@ const MealPlan = () => {
                   </div>
                 ) : (
                   <button className="add-meal-btn">
-                    <span>+</span>
+                    <span className="icon">+</span>
+                    <span className="label">Thêm món</span>
                   </button>
                 )}
               </div>
@@ -194,7 +318,7 @@ const MealPlan = () => {
               <div className="budget-stat">
                 <div className="budget-label">
                   <span>Ngân sách ước tính</span>
-                  <span>1.200k ₫</span>
+                  <span>{mealPlan?.totalBudget ? `${mealPlan.totalBudget.toLocaleString()}k ₫` : '0 ₫'}</span>
                 </div>
                 <div className="budget-bar">
                   <div className="budget-fill" style={{width: '65%'}}></div>
@@ -204,7 +328,7 @@ const MealPlan = () => {
               <div className="stats-grid">
                 <div className="stat-box">
                   <span className="stat-box-label">Calories</span>
-                  <span className="stat-box-value">{totalCalories}</span>
+                  <span className="stat-box-value">{avgCaloriesPerDay}</span>
                   <span className="stat-box-unit">kcal / ngày</span>
                 </div>
                 <div className="stat-box">
@@ -217,22 +341,28 @@ const MealPlan = () => {
               <div className="shopping-list-section">
                 <h3>DANH SÁCH ĐI CHỢ</h3>
                 <div className="shopping-items">
-                  {shoppingList.map((item, idx) => (
-                    <div key={idx} className="shopping-item">
-                      <input 
-                        type="checkbox" 
-                        checked={item.checked}
-                        onChange={() => toggleShoppingItem(idx)}
-                        id={`shopping-${idx}`}
-                      />
-                      <label 
-                        htmlFor={`shopping-${idx}`}
-                        className={item.checked ? 'checked' : ''}
-                      >
-                        {item.name} ({item.amount})
-                      </label>
-                    </div>
-                  ))}
+                  {shoppingList.length > 0 ? (
+                    shoppingList.map((item, idx) => (
+                      <div key={idx} className="shopping-item">
+                        <input 
+                          type="checkbox" 
+                          checked={item.checked}
+                          onChange={() => toggleShoppingItem(idx)}
+                          id={`shopping-${idx}`}
+                        />
+                        <label 
+                          htmlFor={`shopping-${idx}`}
+                          className={item.checked ? 'checked' : ''}
+                        >
+                          {item.name} ({item.amount})
+                        </label>
+                      </div>
+                    ))
+                  ) : (
+                    <p style={{ fontSize: '11px', color: '#999', textAlign: 'center' }}>
+                      Chưa có nguyên liệu
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
@@ -245,7 +375,8 @@ const MealPlan = () => {
           {/* AI Recommendation */}
           <div className="ai-recommendation-card">
             <div className="ai-header">
-              <span className="ai-badge">AI MÁCH BẠN</span>
+              <span className="ai-icon">🤖</span>
+              <span className="ai-badge">AI Mách Bạn</span>
             </div>
             <p>"Tuần này bạn đang thiếu Vitamin C. Tôi gợi ý thêm một bữa xế với Cam hoặc Kiwi để tăng cường đề kháng!"</p>
           </div>

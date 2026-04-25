@@ -44,7 +44,8 @@ const MealsManagement = () => {
       console.log('Loading meals from API...')
       const data = await foodService.getAllFoods()
       console.log('Meals loaded:', data)
-      setMeals(data)
+      // API trả về object có content array, không phải trực tiếp array
+      setMeals(data.content || [])
       setError(null)
     } catch (err) {
       console.error('Error loading meals:', err)
@@ -220,14 +221,14 @@ const MealsManagement = () => {
     {
       icon: 'task_alt',
       label: 'Đã xuất bản',
-      value: meals.filter(meal => meal.status !== 'draft').length.toLocaleString(),
-      subtext: `${Math.round((meals.filter(meal => meal.status !== 'draft').length / meals.length) * 100) || 0}% tổng dữ liệu`,
+      value: (meals.filter(meal => meal.status !== 'draft').length || 0).toLocaleString(),
+      subtext: `${meals.length > 0 ? Math.round((meals.filter(meal => meal.status !== 'draft').length / meals.length) * 100) : 0}% tổng dữ liệu`,
       color: 'blue'
     },
     {
       icon: 'edit_note',
       label: 'Bản nháp',
-      value: meals.filter(meal => meal.status === 'draft').length.toLocaleString(),
+      value: (meals.filter(meal => meal.status === 'draft').length || 0).toLocaleString(),
       subtext: 'Cần được phê duyệt',
       color: 'purple'
     }
