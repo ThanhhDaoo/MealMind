@@ -218,9 +218,8 @@ body {
 }
 
 .favorite-btn {
-  background: rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: white;
+  border: 2px solid #e0e0e0;
   border-radius: 50%;
   width: 56px;
   height: 56px;
@@ -229,22 +228,27 @@ body {
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: #00A86B;
+  color: #999;
   font-size: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .favorite-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
+  border-color: #00A86B;
   transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 168, 107, 0.2);
 }
 
 .favorite-btn.active {
-  border-color: #ff4757;
-  background: rgba(255, 71, 87, 0.1);
+  background: #00A86B;
+  border-color: #00A86B;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 168, 107, 0.3);
 }
 
-.favorite-btn i.filled {
-  color: #ff4757;
+.favorite-btn.active:hover {
+  background: #008f5c;
+  border-color: #008f5c;
 }
 
 /* Main Content */

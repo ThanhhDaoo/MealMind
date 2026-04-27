@@ -333,8 +333,12 @@ const MealPlan = () => {
             {daysOfWeekVN.map((day, idx) => {
               const date = new Date(weekStartDate)
               date.setDate(date.getDate() + idx)
+              const today = new Date()
+              const isToday = date.getDate() === today.getDate() && 
+                             date.getMonth() === today.getMonth() && 
+                             date.getFullYear() === today.getFullYear()
               return (
-                <div key={idx} className={`day-header ${idx === new Date().getDay() - 1 ? 'active' : ''}`}>
+                <div key={idx} className={`day-header ${isToday ? 'active' : ''}`}>
                   <span className="day-name">{day}</span>
                   <span className="day-number">{date.getDate()}</span>
                 </div>

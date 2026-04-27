@@ -94,8 +94,24 @@ public class AuthService {
     public User updateProfile(String token, User userDetails) {
         User user = getCurrentUser(token);
         
-        user.setName(userDetails.getName());
-        // Don't update email and password here
+        // Update name
+        if (userDetails.getName() != null && !userDetails.getName().isEmpty()) {
+            user.setName(userDetails.getName());
+        }
+        
+        // Update email (check if not already taken by another user)
+        if (userDetails.getEmail() != null && !userDetails.getEmail().isEmpty() 
+            && !userDetails.getEmail().equals(user.getEmail())) {
+            if (userRepository.findByEmail(userDetails.getEmail()).isPresent()) {
+                throw new RuntimeException("Email already exists");
+            }
+            user.setEmail(userDetails.getEmail());
+        }
+        
+        // Update phone
+        if (userDetails.getPhone() != null) {
+            user.setPhone(userDetails.getPhone());
+        }
         
         return userRepository.save(user);
     }

@@ -96,6 +96,24 @@ export const adminService = {
     return response.data
   },
 
+  // Meal Plans Management
+  getUserMealPlans: async (userId) => {
+    try {
+      const response = await api.get('/admin/meal-plans')
+      // Filter meal plans by userId
+      const allPlans = response.data
+      return allPlans.filter(plan => plan.user && plan.user.id === userId)
+    } catch (error) {
+      console.error('Error fetching user meal plans:', error)
+      return []
+    }
+  },
+
+  getAllMealPlans: async () => {
+    const response = await api.get('/admin/meal-plans')
+    return response.data
+  },
+
   // Analytics
   getAnalytics: async () => {
     try {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { adminService } from '../services/adminService'
 import UserModal from './UserModal'
+import UserDetailModal from './UserDetailModal'
 import './AdminLayout.css'
 import './UsersManagement.css'
 
@@ -12,6 +13,7 @@ const UsersManagement = () => {
   const [loggingOut, setLoggingOut] = useState(false)
   const [activeTab, setActiveTab] = useState('all')
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [usersPerPage] = useState(10)
@@ -20,6 +22,13 @@ const UsersManagement = () => {
 
   useEffect(() => {
     fetchUsers()
+    
+    // Auto refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchUsers()
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   // Close filter menu when clicking outside
@@ -56,6 +65,11 @@ const UsersManagement = () => {
   const handleEditUser = (user) => {
     setSelectedUser(user)
     setIsModalOpen(true)
+  }
+
+  const handleViewUser = (user) => {
+    setSelectedUser(user)
+    setIsDetailModalOpen(true)
   }
 
   const handleSaveUser = async (userData) => {
@@ -402,6 +416,16 @@ const UsersManagement = () => {
                 </button>
               </div>
               <div className="table-actions">
+                <button 
+                  className="action-btn" 
+                  onClick={fetchUsers} 
+                  title="Làm mới dữ liệu"
+                  disabled={loading}
+                >
+                  <span className="material-icons" style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }}>
+                    refresh
+                  </span>
+                </button>
                 <div className="filter-dropdown">
                   <button className="action-btn" onClick={handleFilterClick} title="Sắp xếp">
                     <span className="material-icons">filter_list</span>
@@ -493,19 +517,25 @@ const UsersManagement = () => {
                         <td className="text-right">
                           <div className="action-buttons">
                             <button 
+                              className="action-icon view"
+                              onClick={() => handleViewUser(users.find(u => u.id === user.userId))}
+                              title="Xem chi tiết"
+                            >
+                              <span className="material-icons">visibility</span>
+                            </button>
+                            <button 
                               className="action-icon edit"
                               onClick={() => handleEditUser(users.find(u => u.id === user.userId))}
+                              title="Chỉnh sửa"
                             >
                               <span className="material-icons">edit</span>
                             </button>
                             <button 
                               className="action-icon delete"
                               onClick={() => handleDeleteUser(user.userId)}
+                              title="Xóa"
                             >
                               <span className="material-icons">delete</span>
-                            </button>
-                            <button className="action-icon more">
-                              <span className="material-icons">more_vert</span>
                             </button>
                           </div>
                         </td>
@@ -574,6 +604,13 @@ const UsersManagement = () => {
         onClose={() => setIsModalOpen(false)}
         user={selectedUser}
         onSave={handleSaveUser}
+      />
+
+      {/* User Detail Modal */}
+      <UserDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        user={selectedUser}
       />
     </div>
   )

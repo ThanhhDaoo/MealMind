@@ -660,6 +660,14 @@
     gap: 16px;
   }
   
+  .page-header .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .page-header .header-content p {
+    font-size: 1rem;
+  }
+  
   .hero-card {
     height: 350px;
     padding: 32px;

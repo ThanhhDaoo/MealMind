@@ -2,6 +2,8 @@ package com.mealapp.controller;
 
 import com.mealapp.dto.MealPlanGenerationRequest;
 import com.mealapp.model.MealPlan;
+import com.mealapp.model.User;
+import com.mealapp.repository.UserRepository;
 import com.mealapp.service.MealPlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -9,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -22,12 +26,26 @@ public class MealPlanController {
     @Autowired
     private MealPlanService mealPlanService;
     
+    @Autowired
+    private UserRepository userRepository;
+    
+    // Helper method to get current user ID from JWT token
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated()) {
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            return user.getId();
+        }
+        throw new RuntimeException("User not authenticated");
+    }
+    
     // Get meal plans by date
     @GetMapping
     public ResponseEntity<List<MealPlan>> getMealPlansByDate(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        // For now, using a dummy user ID. In real app, get from JWT token
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         List<MealPlan> mealPlans = mealPlanService.getMealPlansByDate(userId, date);
         return ResponseEntity.ok(mealPlans);
     }
@@ -42,8 +60,7 @@ public class MealPlanController {
     // Generate meal plan with AI
     @PostMapping("/generate")
     public ResponseEntity<MealPlan> generateMealPlan(@RequestBody MealPlanGenerationRequest request) {
-        // For now, using a dummy user ID. In real app, get from JWT token
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         MealPlan mealPlan = mealPlanService.generateMealPlan(userId, request);
         return ResponseEntity.ok(mealPlan);
     }
@@ -51,8 +68,7 @@ public class MealPlanController {
     // Create custom meal plan
     @PostMapping
     public ResponseEntity<MealPlan> createMealPlan(@RequestBody MealPlan mealPlan) {
-        // For now, using a dummy user ID. In real app, get from JWT token
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         MealPlan createdMealPlan = mealPlanService.createMealPlan(userId, mealPlan);
         return ResponseEntity.ok(createdMealPlan);
     }
@@ -76,8 +92,7 @@ public class MealPlanController {
     public ResponseEntity<Page<MealPlan>> getMealPlanHistory(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        // For now, using a dummy user ID. In real app, get from JWT token
-        Long userId = 1L;
+        Long userId = getCurrentUserId();
         Pageable pageable = PageRequest.of(page, size);
         Page<MealPlan> history = mealPlanService.getMealPlanHistory(userId, pageable);
         return ResponseEntity.ok(history);
