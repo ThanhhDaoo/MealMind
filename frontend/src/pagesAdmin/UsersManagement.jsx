@@ -358,12 +358,8 @@ const UsersManagement = () => {
           <div className="page-header">
             <div>
               <h2>Quản lý người dùng</h2>
-              <p>Quản trị viên có thể xem, chỉnh sửa và phân quyền cho người dùng hệ thống.</p>
+              <p>Quản trị viên có thể xem, chỉnh sửa vai trò và trạng thái của người dùng hệ thống.</p>
             </div>
-            <button className="add-user-btn" onClick={handleAddUser}>
-              <span className="material-icons">person_add</span>
-              Thêm người dùng
-            </button>
           </div>
 
           {/* Stats Grid */}

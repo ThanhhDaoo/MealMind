@@ -114,15 +114,12 @@ public class AdminController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
+        // Admin can only update name, role, and status
         user.setName(userDetails.getName());
-        user.setEmail(userDetails.getEmail());
         user.setRole(userDetails.getRole());
         user.setStatus(userDetails.getStatus());
         
-        // Only update password if provided
-        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
-        }
+        // Do NOT allow password or email changes from admin panel
         
         User updatedUser = userRepository.save(user);
         return ResponseEntity.ok(updatedUser);
@@ -202,6 +199,14 @@ public class AdminController {
     @Transactional(readOnly = true)
     public ResponseEntity<List<com.mealapp.model.MealPlan>> getAllMealPlans() {
         List<com.mealapp.model.MealPlan> mealPlans = mealPlanRepository.findAll();
+        return ResponseEntity.ok(mealPlans);
+    }
+    
+    // Get meal plans by user ID
+    @GetMapping("/users/{userId}/meal-plans")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<com.mealapp.model.MealPlan>> getUserMealPlans(@PathVariable Long userId) {
+        List<com.mealapp.model.MealPlan> mealPlans = mealPlanRepository.findByUserId(userId);
         return ResponseEntity.ok(mealPlans);
     }
     
