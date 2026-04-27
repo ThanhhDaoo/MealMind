@@ -133,16 +133,6 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
     
-    // Temporary endpoint to promote user to admin - REMOVE IN PRODUCTION
-    @PostMapping("/users/{id}/promote")
-    public ResponseEntity<User> promoteToAdmin(@PathVariable Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setRole("ADMIN");
-        User updatedUser = userRepository.save(user);
-        return ResponseEntity.ok(updatedUser);
-    }
-    
     // Food Management
     @PostMapping("/foods")
     public ResponseEntity<FoodDTO> createFood(@RequestBody FoodDTO foodDTO) {
@@ -210,14 +200,19 @@ public class AdminController {
         return ResponseEntity.ok(mealPlans);
     }
     
-    // Settings - Get current admin profile (simplified version)
+    // Settings - Get current admin profile
     @GetMapping("/profile")
-    public ResponseEntity<UserDTO> getCurrentProfile() {
+    public ResponseEntity<UserDTO> getCurrentProfile(@RequestHeader("Authorization") String token) {
         try {
-            // For now, get the first admin user (can be improved later)
-            User user = userRepository.findByRole("ADMIN").stream()
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            // Extract email from JWT token
+            String email = jwtService.extractUsername(token.replace("Bearer ", ""));
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Verify user is admin
+            if (!"ADMIN".equals(user.getRole())) {
+                throw new RuntimeException("Access denied: User is not an admin");
+            }
             
             UserDTO dto = new UserDTO();
             dto.setId(user.getId());
@@ -234,14 +229,21 @@ public class AdminController {
         }
     }
     
-    // Settings - Update profile (simplified version)
+    // Settings - Update profile
     @PutMapping("/profile")
-    public ResponseEntity<UserDTO> updateProfile(@RequestBody UserDTO profileUpdate) {
+    public ResponseEntity<UserDTO> updateProfile(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UserDTO profileUpdate) {
         try {
-            // For now, update the first admin user
-            User user = userRepository.findByRole("ADMIN").stream()
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            // Extract email from JWT token
+            String email = jwtService.extractUsername(token.replace("Bearer ", ""));
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Verify user is admin
+            if (!"ADMIN".equals(user.getRole())) {
+                throw new RuntimeException("Access denied: User is not an admin");
+            }
             
             // Update allowed fields
             if (profileUpdate.getName() != null) {
@@ -274,14 +276,21 @@ public class AdminController {
         }
     }
     
-    // Settings - Change password (simplified version)
+    // Settings - Change password
     @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<String> changePassword(
+            @RequestHeader("Authorization") String token,
+            @RequestBody ChangePasswordRequest request) {
         try {
-            // For now, update the first admin user
-            User user = userRepository.findByRole("ADMIN").stream()
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Admin user not found"));
+            // Extract email from JWT token
+            String email = jwtService.extractUsername(token.replace("Bearer ", ""));
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            // Verify user is admin
+            if (!"ADMIN".equals(user.getRole())) {
+                throw new RuntimeException("Access denied: User is not an admin");
+            }
             
             // Verify current password
             if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {

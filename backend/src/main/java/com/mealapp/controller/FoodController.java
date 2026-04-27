@@ -4,7 +4,9 @@ import com.mealapp.dto.FoodDTO;
 import com.mealapp.service.FoodService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -50,16 +52,19 @@ public class FoodController {
     }
 
     @PostMapping
-    public ResponseEntity<FoodDTO> createFood(@RequestBody FoodDTO foodDTO) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FoodDTO> createFood(@Valid @RequestBody FoodDTO foodDTO) {
         return ResponseEntity.ok(foodService.createFood(foodDTO));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<FoodDTO> updateFood(@PathVariable Long id, @RequestBody FoodDTO foodDTO) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<FoodDTO> updateFood(@PathVariable Long id, @Valid @RequestBody FoodDTO foodDTO) {
         return ResponseEntity.ok(foodService.updateFood(id, foodDTO));
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteFood(@PathVariable Long id) {
         foodService.deleteFood(id);
         return ResponseEntity.noContent().build();

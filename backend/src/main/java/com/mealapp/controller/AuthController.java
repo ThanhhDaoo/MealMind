@@ -9,6 +9,7 @@ import com.mealapp.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -27,7 +28,7 @@ public class AuthController {
     
     // User registration
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         AuthResponse response = authService.register(request.getName(), request.getEmail(), request.getPassword());
         return ResponseEntity.ok(response);
     }
@@ -48,14 +49,14 @@ public class AuthController {
     
     // Update user profile
     @PutMapping("/profile")
-    public ResponseEntity<User> updateProfile(@RequestHeader("Authorization") String token, @RequestBody User userDetails) {
+    public ResponseEntity<User> updateProfile(@RequestHeader("Authorization") String token, @Valid @RequestBody User userDetails) {
         User updatedUser = authService.updateProfile(token, userDetails);
         return ResponseEntity.ok(updatedUser);
     }
     
     // Change password
     @PutMapping("/change-password")
-    public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token, @RequestBody ChangePasswordRequest request) {
+    public ResponseEntity<String> changePassword(@RequestHeader("Authorization") String token, @Valid @RequestBody ChangePasswordRequest request) {
         authService.changePassword(token, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok("Password changed successfully");
     }
