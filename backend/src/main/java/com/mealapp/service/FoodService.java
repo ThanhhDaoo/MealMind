@@ -10,6 +10,8 @@ import com.mealapp.repository.FoodInstructionRepository;
 import com.mealapp.repository.FoodRepository;
 import com.mealapp.repository.IngredientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +31,7 @@ public class FoodService {
     private final IngredientRepository ingredientRepository;
     private final FoodInstructionRepository instructionRepository;
 
+    @Cacheable(value = "foods", key = "'all'")
     public List<FoodDTO> getAllFoods() {
         return foodRepository.findByStatus("PUBLISHED")
                 .stream()
@@ -80,17 +83,20 @@ public class FoodService {
         return result;
     }
 
+    @Cacheable(value = "foodDetails", key = "#id")
     public FoodDTO getFoodById(Long id) {
-        Food food = foodRepository.findById(id)
+        // Use JOIN FETCH query to avoid N+1 problem
+        Food food = foodRepository.findByIdWithDetails(id)
                 .orElseThrow(() -> new RuntimeException("Food not found with id: " + id));
         
-        // Increment view count
+        // Increment view count (this will invalidate cache on next save)
         food.setViewCount(food.getViewCount() + 1);
         foodRepository.save(food);
         
         return convertToDetailDTO(food);
     }
 
+    @Cacheable(value = "foodsByCategory", key = "#category")
     public List<FoodDTO> getFoodsByCategory(String category) {
         return foodRepository.findByCategoryAndStatus(category, "PUBLISHED")
                 .stream()
@@ -105,6 +111,7 @@ public class FoodService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "topRatedFoods")
     public List<FoodDTO> getTopRatedFoods() {
         return foodRepository.findTopRatedFoods()
                 .stream()
@@ -113,11 +120,13 @@ public class FoodService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "categories")
     public List<String> getAllCategories() {
         return foodRepository.findAllCategories();
     }
 
     @Transactional
+    @CacheEvict(value = {"foods", "foodDetails", "foodsByCategory", "topRatedFoods", "categories"}, allEntries = true)
     public FoodDTO createFood(FoodDTO foodDTO) {
         Food food = convertToEntity(foodDTO);
         food.setStatus("PUBLISHED");
@@ -150,6 +159,7 @@ public class FoodService {
     }
 
     @Transactional
+    @CacheEvict(value = {"foods", "foodDetails", "foodsByCategory", "topRatedFoods", "categories"}, allEntries = true)
     public FoodDTO updateFood(Long id, FoodDTO foodDTO) {
         Food food = foodRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Food not found with id: " + id));
@@ -188,6 +198,7 @@ public class FoodService {
     }
 
     @Transactional
+    @CacheEvict(value = {"foods", "foodDetails", "foodsByCategory", "topRatedFoods", "categories"}, allEntries = true)
     public void deleteFood(Long id) {
         foodRepository.deleteById(id);
     }
@@ -225,8 +236,9 @@ public class FoodService {
     private FoodDTO convertToDetailDTO(Food food) {
         FoodDTO dto = convertToDTO(food);
         
-        // Add ingredients
-        List<IngredientDTO> ingredients = ingredientRepository.findByFoodId(food.getId())
+        // Ingredients and instructions are already loaded via JOIN FETCH
+        // No N+1 query problem!
+        List<IngredientDTO> ingredients = food.getIngredients()
                 .stream()
                 .map(ing -> {
                     IngredientDTO ingDTO = new IngredientDTO();
@@ -239,9 +251,9 @@ public class FoodService {
                 .collect(Collectors.toList());
         dto.setIngredients(ingredients);
         
-        // Add instructions
-        List<InstructionDTO> instructions = instructionRepository.findByFoodIdOrderByStepOrderAsc(food.getId())
+        List<InstructionDTO> instructions = food.getInstructions()
                 .stream()
+                .sorted((a, b) -> a.getStepOrder().compareTo(b.getStepOrder()))
                 .map(inst -> {
                     InstructionDTO instDTO = new InstructionDTO();
                     instDTO.setId(inst.getId());

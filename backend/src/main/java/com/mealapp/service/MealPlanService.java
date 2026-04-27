@@ -14,7 +14,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class MealPlanService {
@@ -47,11 +49,53 @@ public class MealPlanService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        // Use AI service to generate meal plan
-        MealPlan generatedPlan = aiService.generateMealPlan(user, request);
+        // Get meal recommendations from AI service (only food IDs)
+        Map<String, List<Long>> recommendations = aiService.generateMealPlanRecommendations(
+            request.getDietaryPreferences(), 
+            7 // 7 days
+        );
+        
+        // Create MealPlan entity
+        MealPlan mealPlan = new MealPlan();
+        mealPlan.setName("AI Generated Plan - " + request.getWeekStartDate());
+        mealPlan.setWeekStartDate(request.getWeekStartDate());
+        mealPlan.setWeekEndDate(request.getWeekStartDate().plusDays(6));
+        mealPlan.setUser(user);
+        mealPlan.setStatus("ACTIVE");
+        
+        List<MealPlanItem> mealItems = new ArrayList<>();
+        
+        // Create MealPlanItems from recommendations
+        for (Map.Entry<String, List<Long>> entry : recommendations.entrySet()) {
+            String key = entry.getKey();
+            String[] parts = key.split("_");
+            String day = parts[0];
+            String mealType = parts[1];
+            
+            for (Long foodId : entry.getValue()) {
+                Food food = foodRepository.findById(foodId)
+                        .orElseThrow(() -> new RuntimeException("Food not found with id: " + foodId));
+                
+                MealPlanItem item = new MealPlanItem();
+                item.setMealPlan(mealPlan);
+                item.setMealType(mealType);
+                item.setDayOfWeek(day);
+                item.setFood(food);
+                item.setServings(1);
+                mealItems.add(item);
+            }
+        }
+        
+        mealPlan.setItems(mealItems);
+        
+        // Calculate total calories
+        int totalCalories = mealItems.stream()
+                .mapToInt(item -> item.getFood().getCalories() * item.getServings())
+                .sum();
+        mealPlan.setTotalCalories(totalCalories);
         
         // Save the generated meal plan
-        return mealPlanRepository.save(generatedPlan);
+        return mealPlanRepository.save(mealPlan);
     }
     
     // Create custom meal plan

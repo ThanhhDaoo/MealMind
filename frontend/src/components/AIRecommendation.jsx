@@ -1,7 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { aiService } from '../services/aiService'
 import './AIRecommendation.css'
 
 const AIRecommendation = () => {
+  const navigate = useNavigate()
   const [userInput, setUserInput] = useState({
     ingredients: '',
     dietaryRestrictions: '',
@@ -9,16 +12,43 @@ const AIRecommendation = () => {
   })
   
   const [isLoading, setIsLoading] = useState(false)
-  const [showResults, setShowResults] = useState(true)
+  const [showResults, setShowResults] = useState(false)
+  const [recommendations, setRecommendations] = useState([])
+  const [error, setError] = useState(null)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsLoading(true)
     
-    setTimeout(() => {
-      setIsLoading(false)
+    if (!userInput.ingredients.trim()) {
+      setError('Vui lòng nhập nguyên liệu')
+      return
+    }
+    
+    setIsLoading(true)
+    setError(null)
+    
+    try {
+      const results = await aiService.getRecommendations(
+        userInput.ingredients,
+        userInput.dietaryRestrictions,
+        userInput.mealType
+      )
+      setRecommendations(results)
       setShowResults(true)
-    }, 2000)
+    } catch (err) {
+      console.error('Error getting recommendations:', err)
+      setError('Không thể lấy gợi ý. Vui lòng thử lại.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  
+  const handleViewRecipe = (foodId) => {
+    navigate(`/food/${foodId}`)
+  }
+  
+  const handleRefresh = () => {
+    handleSubmit({ preventDefault: () => {} })
   }
 
   const dietTypes = ['Keto', 'Vegan', 'Low-carb']
@@ -50,6 +80,12 @@ const AIRecommendation = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="ai-form">
+            {error && (
+              <div className="error-message">
+                {error}
+              </div>
+            )}
+            
             <div className="form-group full-width">
               <label>TÔI ĐANG CÓ</label>
               <div className="input-container">
@@ -58,6 +94,7 @@ const AIRecommendation = () => {
                   placeholder="bò, cà chua, hành tây, măng tây..."
                   value={userInput.ingredients}
                   onChange={(e) => setUserInput({...userInput, ingredients: e.target.value})}
+                  required
                 />
               </div>
             </div>
@@ -110,14 +147,14 @@ const AIRecommendation = () => {
       </section>
 
       {/* AI Output / Recommendations */}
-      {showResults && (
+      {showResults && recommendations.length > 0 && (
         <section className="recommendations-section">
           <div className="section-header">
             <div>
               <h2>Thực đơn dành riêng cho bạn</h2>
-              <p>Dựa trên nguyên liệu: <span className="highlight">Thịt bò, Cà chua</span></p>
+              <p>Dựa trên nguyên liệu: <span className="highlight">{userInput.ingredients}</span></p>
             </div>
-            <button className="refresh-btn">
+            <button className="refresh-btn" onClick={handleRefresh} disabled={isLoading}>
               Làm mới kết quả <span>🔄</span>
             </button>
           </div>
@@ -125,80 +162,93 @@ const AIRecommendation = () => {
           {/* Bento Grid of Recommendations */}
           <div className="recommendations-grid">
             {/* Hero Recommendation Card */}
-            <div className="hero-card">
-              <div className="hero-card-content">
-                <div className="hero-image">
-                  <img 
-                    src="https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop" 
-                    alt="Bò Áp Chảo Cà Chua Bi & Măng Tây" 
-                  />
-                  <div className="hero-badge">
-                    <span>⭐</span>
-                    Gợi ý tốt nhất
-                  </div>
-                </div>
-                <div className="hero-info">
-                  <div className="hero-meta">
-                    <span className="time-badge">
-                      <span>⏱️</span> 12 Phút
-                    </span>
-                    <span className="calorie-badge">
-                      <span>🔥</span> 450 kcal
-                    </span>
-                  </div>
-                  <h3>Bò Áp Chảo Cà Chua Bi & Măng Tây</h3>
-                  <p>Món ăn đậm đà, giàu đạm và vitamin, chế biến cực nhanh chỉ với 1 chảo duy nhất. Phù hợp cho bữa tối sau giờ làm việc bận rộn.</p>
-                  <div className="hero-features">
-                    <div className="feature-item">
-                      <span className="check-icon">✅</span>
-                      <span>Tối ưu lượng Protein</span>
-                    </div>
-                    <div className="feature-item">
-                      <span className="check-icon">✅</span>
-                      <span>Ít Carb, không đường</span>
+            {recommendations[0] && (
+              <div className="hero-card">
+                <div className="hero-card-content">
+                  <div className="hero-image">
+                    <img 
+                      src={recommendations[0].imageUrl || "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400&h=300&fit=crop"} 
+                      alt={recommendations[0].name}
+                    />
+                    <div className="hero-badge">
+                      <span>⭐</span>
+                      Gợi ý tốt nhất
                     </div>
                   </div>
-                  <button className="view-recipe-btn">
-                    Xem công thức chi tiết
-                    <span>→</span>
-                  </button>
+                  <div className="hero-info">
+                    <div className="hero-meta">
+                      <span className="time-badge">
+                        <span>⏱️</span> {recommendations[0].totalTime || 15} Phút
+                      </span>
+                      <span className="calorie-badge">
+                        <span>🔥</span> {recommendations[0].calories || 450} kcal
+                      </span>
+                    </div>
+                    <h3>{recommendations[0].name}</h3>
+                    <p>{recommendations[0].description || 'Món ăn ngon và bổ dưỡng'}</p>
+                    <div className="hero-features">
+                      {recommendations[0].protein && (
+                        <div className="feature-item">
+                          <span className="check-icon">✅</span>
+                          <span>Giàu Protein ({recommendations[0].protein}g)</span>
+                        </div>
+                      )}
+                      {recommendations[0].carbs && recommendations[0].carbs < 30 && (
+                        <div className="feature-item">
+                          <span className="check-icon">✅</span>
+                          <span>Ít Carb ({recommendations[0].carbs}g)</span>
+                        </div>
+                      )}
+                    </div>
+                    <button 
+                      className="view-recipe-btn"
+                      onClick={() => handleViewRecipe(recommendations[0].id)}
+                    >
+                      Xem công thức chi tiết
+                      <span>→</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Secondary Recommendations */}
             <div className="secondary-cards">
               {/* Mini Card 1 */}
-              <div className="mini-card">
-                <img 
-                  src="https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop" 
-                  alt="Salad Bò Trộn Cà Chua Ý" 
-                />
-                <div className="mini-card-info">
-                  <span className="mini-card-category">Món Nhẹ</span>
-                  <h4>Salad Bò Trộn Cà Chua Ý</h4>
-                  <div className="mini-card-meta">
-                    <span><span>⏱️</span> 8'</span>
-                    <span><span>🔥</span> Dễ</span>
+              {recommendations[1] && (
+                <div className="mini-card" onClick={() => handleViewRecipe(recommendations[1].id)}>
+                  <img 
+                    src={recommendations[1].imageUrl || "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=100&h=100&fit=crop"} 
+                    alt={recommendations[1].name}
+                  />
+                  <div className="mini-card-info">
+                    <span className="mini-card-category">{recommendations[1].dietType || 'Món Ngon'}</span>
+                    <h4>{recommendations[1].name}</h4>
+                    <div className="mini-card-meta">
+                      <span><span>⏱️</span> {recommendations[1].totalTime || 10}'</span>
+                      <span><span>🔥</span> {recommendations[1].calories || 300} kcal</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Mini Card 2 */}
-              <div className="mini-card">
-                <img 
-                  src="https://images.unsplash.com/photo-1547592166-23ac45744acd?w=100&h=100&fit=crop" 
-                  alt="Súp Bò Hầm Cà Chua Cay" 
-                />
-                <div className="mini-card-info">
-                  <span className="mini-card-category">Súp & Hầm</span>
-                  <h4>Súp Bò Hầm Cà Chua Cay</h4>
-                  <div className="mini-card-meta">
-                    <span><span>⏱️</span> 15'</span>
-                    <span><span>🔥</span> Trung bình</span>
+              {recommendations[2] && (
+                <div className="mini-card" onClick={() => handleViewRecipe(recommendations[2].id)}>
+                  <img 
+                    src={recommendations[2].imageUrl || "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=100&h=100&fit=crop"} 
+                    alt={recommendations[2].name}
+                  />
+                  <div className="mini-card-info">
+                    <span className="mini-card-category">{recommendations[2].dietType || 'Món Ngon'}</span>
+                    <h4>{recommendations[2].name}</h4>
+                    <div className="mini-card-meta">
+                      <span><span>⏱️</span> {recommendations[2].totalTime || 12}'</span>
+                      <span><span>🔥</span> {recommendations[2].calories || 350} kcal</span>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* AI Tip Card */}
               <div className="ai-tip-card">
@@ -207,11 +257,24 @@ const AIRecommendation = () => {
                 </div>
                 <div className="tip-content">
                   <h4>Mẹo AI cho bạn</h4>
-                  <p>Thịt bò sẽ mềm hơn nếu bạn ướp với một chút dầu oliu và muối trong 5 phút trước khi nấu ở nhiệt độ cao.</p>
+                  <p>
+                    {userInput.mealType === 'Keto' && 'Chế độ Keto giúp giảm cân hiệu quả bằng cách giảm carb và tăng chất béo lành mạnh.'}
+                    {userInput.mealType === 'Vegan' && 'Chế độ ăn chay giúp cải thiện sức khỏe tim mạch và giảm nguy cơ bệnh mãn tính.'}
+                    {userInput.mealType === 'Low-carb' && 'Giảm carb giúp kiểm soát đường huyết và hỗ trợ giảm cân hiệu quả.'}
+                  </p>
                   <button className="tip-btn">Khám phá thêm mẹo</button>
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+      )}
+      
+      {showResults && recommendations.length === 0 && !isLoading && (
+        <section className="recommendations-section">
+          <div className="no-results">
+            <h3>Không tìm thấy món ăn phù hợp</h3>
+            <p>Vui lòng thử với nguyên liệu khác hoặc thay đổi yêu cầu</p>
           </div>
         </section>
       )}

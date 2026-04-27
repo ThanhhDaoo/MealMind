@@ -41,9 +41,7 @@ const MealsManagement = () => {
   const loadMeals = async () => {
     try {
       setLoading(true)
-      console.log('Loading meals from API...')
       const data = await foodService.getAllFoods()
-      console.log('Meals loaded:', data)
       // API trả về object có content array, không phải trực tiếp array
       setMeals(data.content || [])
       setError(null)

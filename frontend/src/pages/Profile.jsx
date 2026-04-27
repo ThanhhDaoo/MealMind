@@ -359,41 +359,6 @@ const Profile = () => {
             </div>
           </form>
         </div>
-
-        {/* Account Stats */}
-        <div className="profile-card stats-card">
-          <div className="card-header">
-            <h2>Thống kê hoạt động</h2>
-          </div>
-
-          <div className="stats-grid">
-            <div className="stat-item">
-              <div className="stat-icon">📅</div>
-              <div className="stat-info">
-                <p className="stat-label">Kế hoạch đã tạo</p>
-                <p className="stat-value">0</p>
-              </div>
-            </div>
-
-            <div className="stat-item">
-              <div className="stat-icon">❤️</div>
-              <div className="stat-info">
-                <p className="stat-label">Món yêu thích</p>
-                <p className="stat-value">
-                  {JSON.parse(localStorage.getItem('favorites') || '[]').length}
-                </p>
-              </div>
-            </div>
-
-            <div className="stat-item">
-              <div className="stat-icon">🤖</div>
-              <div className="stat-info">
-                <p className="stat-label">Gợi ý AI</p>
-                <p className="stat-value">0</p>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

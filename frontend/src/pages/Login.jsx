@@ -63,11 +63,11 @@ const Login = () => {
   }
 
   const handleGoogleLogin = () => {
-    console.log('Google login')
+    // TODO: Implement Google login
   }
 
   const handleAppleLogin = () => {
-    console.log('Apple login')
+    // TODO: Implement Apple login
   }
 
   return (

@@ -22,10 +22,6 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith('/admin')
   const isAuthRoute = location.pathname === '/login' || location.pathname === '/register'
 
-  console.log('Current path:', location.pathname)
-  console.log('Is admin route:', isAdminRoute)
-  console.log('Is auth route:', isAuthRoute)
-
   return (
     <div className="App">
       {!isAdminRoute && !isAuthRoute && <Navbar />}
@@ -34,6 +30,7 @@ function AppContent() {
           <Route path="/" element={<Home />} />
           <Route path="/foods" element={<FoodList />} />
           <Route path="/foods/:id" element={<FoodDetail />} />
+          <Route path="/food/:id" element={<FoodDetail />} />
           <Route path="/meal-plan" element={<MealPlan />} />
           <Route path="/ai-recommendation" element={<AIRecommendationPage />} />
           <Route path="/favorite" element={<Favorite />} />

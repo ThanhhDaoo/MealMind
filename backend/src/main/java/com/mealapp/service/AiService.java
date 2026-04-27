@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 @Service
 public class AiService {
@@ -19,18 +22,14 @@ public class AiService {
     @Autowired
     private FoodRepository foodRepository;
     
+    @Autowired
+    private OpenAiService openAiService;
+    
     private final Random random = new Random();
     
-    // Generate meal plan using AI (simplified version)
-    public MealPlan generateMealPlan(User user, MealPlanGenerationRequest request) {
-        MealPlan mealPlan = new MealPlan();
-        mealPlan.setName("AI Generated Plan - " + request.getWeekStartDate());
-        mealPlan.setWeekStartDate(request.getWeekStartDate());
-        mealPlan.setWeekEndDate(request.getWeekStartDate().plusDays(6));
-        mealPlan.setUser(user);
-        mealPlan.setStatus("ACTIVE");
-        
-        List<MealPlanItem> mealItems = new ArrayList<>();
+    // Generate meal plan recommendations (returns food IDs only, not MealPlan entity)
+    public Map<String, List<Long>> generateMealPlanRecommendations(List<String> dietaryPreferences, int days) {
+        Map<String, List<Long>> recommendations = new HashMap<>();
         
         // Get all available foods
         List<Food> allFoods = foodRepository.findAll();
@@ -41,8 +40,8 @@ public class AiService {
         
         // Filter foods based on dietary preferences if provided
         List<Food> filteredFoods = allFoods;
-        if (request.getDietaryPreferences() != null && !request.getDietaryPreferences().isEmpty()) {
-            filteredFoods = filterFoodsByPreferences(allFoods, request.getDietaryPreferences());
+        if (dietaryPreferences != null && !dietaryPreferences.isEmpty()) {
+            filteredFoods = filterFoodsByPreferences(allFoods, dietaryPreferences);
         }
         
         // If no foods match preferences, use all foods
@@ -53,48 +52,24 @@ public class AiService {
         // Days of week
         String[] daysOfWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
         
-        // Generate meals for each day
-        for (String day : daysOfWeek) {
+        // Generate meal recommendations for each day
+        for (int i = 0; i < Math.min(days, daysOfWeek.length); i++) {
+            String day = daysOfWeek[i];
+            
             // Breakfast
             Food breakfastFood = getRandomFood(filteredFoods);
-            MealPlanItem breakfastItem = new MealPlanItem();
-            breakfastItem.setMealType("BREAKFAST");
-            breakfastItem.setDayOfWeek(day);
-            breakfastItem.setFood(breakfastFood);
-            breakfastItem.setServings(1);
-            breakfastItem.setMealPlan(mealPlan);
-            mealItems.add(breakfastItem);
+            recommendations.put(day + "_BREAKFAST", List.of(breakfastFood.getId()));
             
             // Lunch
             Food lunchFood = getRandomFood(filteredFoods);
-            MealPlanItem lunchItem = new MealPlanItem();
-            lunchItem.setMealType("LUNCH");
-            lunchItem.setDayOfWeek(day);
-            lunchItem.setFood(lunchFood);
-            lunchItem.setServings(1);
-            lunchItem.setMealPlan(mealPlan);
-            mealItems.add(lunchItem);
+            recommendations.put(day + "_LUNCH", List.of(lunchFood.getId()));
             
             // Dinner
             Food dinnerFood = getRandomFood(filteredFoods);
-            MealPlanItem dinnerItem = new MealPlanItem();
-            dinnerItem.setMealType("DINNER");
-            dinnerItem.setDayOfWeek(day);
-            dinnerItem.setFood(dinnerFood);
-            dinnerItem.setServings(1);
-            dinnerItem.setMealPlan(mealPlan);
-            mealItems.add(dinnerItem);
+            recommendations.put(day + "_DINNER", List.of(dinnerFood.getId()));
         }
         
-        mealPlan.setItems(mealItems);
-        
-        // Calculate total calories
-        int totalCalories = mealItems.stream()
-                .mapToInt(item -> item.getFood().getCalories() * item.getServings())
-                .sum();
-        mealPlan.setTotalCalories(totalCalories);
-        
-        return mealPlan;
+        return recommendations;
     }
     
     // Filter foods by dietary preferences
@@ -184,5 +159,105 @@ public class AiService {
         // Simplified recommendation logic
         List<Food> allFoods = foodRepository.findAll();
         return getRandomFoods(allFoods, 5);
+    }
+    
+    // Get AI recommendations based on ingredients and preferences
+    public List<Food> getRecommendations(String ingredients, String dietaryRestrictions, String mealType) {
+        List<Food> allFoods = foodRepository.findAll();
+        
+        if (allFoods.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        // Filter foods by meal type and dietary restrictions first
+        List<Food> filteredFoods = filterFoodsByPreferences(allFoods, dietaryRestrictions, mealType);
+        
+        if (filteredFoods.isEmpty()) {
+            filteredFoods = allFoods;
+        }
+        
+        // Convert foods to simple map for OpenAI
+        List<Map<String, Object>> foodMaps = filteredFoods.stream()
+            .map(food -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", food.getId());
+                map.put("name", food.getName());
+                map.put("description", food.getDescription());
+                map.put("calories", food.getCalories());
+                map.put("totalTime", food.getTotalTime());
+                map.put("dietType", food.getDietType());
+                return map;
+            })
+            .collect(Collectors.toList());
+        
+        // Get recommended food IDs from OpenAI
+        List<Long> recommendedIds = openAiService.getRecommendedFoodIds(
+            ingredients, dietaryRestrictions, mealType, foodMaps
+        );
+        
+        // Get Food objects by IDs
+        List<Food> recommendations = new ArrayList<>();
+        for (Long id : recommendedIds) {
+            foodRepository.findById(id).ifPresent(recommendations::add);
+        }
+        
+        // If not enough recommendations, add random foods
+        while (recommendations.size() < 3 && recommendations.size() < filteredFoods.size()) {
+            Food randomFood = filteredFoods.get(random.nextInt(filteredFoods.size()));
+            if (!recommendations.contains(randomFood)) {
+                recommendations.add(randomFood);
+            }
+        }
+        
+        return recommendations;
+    }
+    
+    private List<Food> filterFoodsByPreferences(List<Food> foods, String dietaryRestrictions, String mealType) {
+        List<Food> filtered = new ArrayList<>(foods);
+        
+        // Filter by meal type (diet type)
+        if (mealType != null && !mealType.trim().isEmpty()) {
+            String diet = mealType.toLowerCase().trim();
+            filtered = filtered.stream()
+                .filter(f -> {
+                    if (f.getDietType() == null) return false;
+                    String foodDiet = f.getDietType().toLowerCase();
+                    
+                    if (diet.equals("keto")) {
+                        return foodDiet.contains("keto") || foodDiet.contains("low carb");
+                    } else if (diet.equals("vegan")) {
+                        return foodDiet.contains("vegetarian") || foodDiet.contains("vegan");
+                    } else if (diet.equals("low-carb")) {
+                        return f.getCarbs() != null && f.getCarbs() < 30;
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+        }
+        
+        // Filter by dietary restrictions
+        if (dietaryRestrictions != null && !dietaryRestrictions.trim().isEmpty()) {
+            String restrictions = dietaryRestrictions.toLowerCase();
+            
+            // Filter by time
+            if (restrictions.contains("15 phút") || restrictions.contains("nhanh")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getTotalTime() != null && f.getTotalTime() <= 15)
+                    .collect(Collectors.toList());
+            } else if (restrictions.contains("20 phút")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getTotalTime() != null && f.getTotalTime() <= 20)
+                    .collect(Collectors.toList());
+            }
+            
+            // Filter by calories
+            if (restrictions.contains("ít dầu") || restrictions.contains("ít calories")) {
+                filtered = filtered.stream()
+                    .filter(f -> f.getCalories() != null && f.getCalories() < 400)
+                    .collect(Collectors.toList());
+            }
+        }
+        
+        return filtered;
     }
 }

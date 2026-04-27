@@ -14,9 +14,7 @@ const FoodDetail = () => {
     const fetchFood = async () => {
       try {
         setLoading(true)
-        console.log('Fetching food with ID:', id)
         const foodData = await foodService.getFoodById(id)
-        console.log('Food data received:', foodData)
         setFood(foodData)
         
         // Check if this food is in favorites
@@ -81,8 +79,7 @@ const FoodDetail = () => {
   }, [id])
 
   const handleAddToPlan = () => {
-    // Logic thêm vào kế hoạch bữa ăn
-    console.log('Thêm vào kế hoạch:', food.name)
+    // TODO: Implement add to meal plan
   }
 
   const toggleFavorite = () => {

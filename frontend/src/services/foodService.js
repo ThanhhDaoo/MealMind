@@ -4,9 +4,7 @@ export const foodService = {
   // Get all foods with optional filters
   getAllFoods: async (params = {}) => {
     try {
-      console.log('Calling API /foods with params:', params)
       const response = await api.get('/foods', { params })
-      console.log('API response:', response.data)
       return response.data
     } catch (error) {
       console.error('API error:', error)

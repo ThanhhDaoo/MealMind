@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -59,7 +60,7 @@ public class MealPlanController {
     
     // Generate meal plan with AI
     @PostMapping("/generate")
-    public ResponseEntity<MealPlan> generateMealPlan(@RequestBody MealPlanGenerationRequest request) {
+    public ResponseEntity<MealPlan> generateMealPlan(@Valid @RequestBody MealPlanGenerationRequest request) {
         Long userId = getCurrentUserId();
         MealPlan mealPlan = mealPlanService.generateMealPlan(userId, request);
         return ResponseEntity.ok(mealPlan);
