@@ -3,6 +3,11 @@
 .env.local
 .env.*.local
 
+# Application properties with credentials (use .example instead)
+backend/src/main/resources/application.properties
+backend/src/main/resources/application-*.properties
+!backend/src/main/resources/application.properties.example
+
 # Logs
 *.log
 logs/
