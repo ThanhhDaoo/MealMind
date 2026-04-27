@@ -6,7 +6,6 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    password: '',
     role: 'USER',
     status: 'ACTIVE'
   })
@@ -19,7 +18,6 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        password: '', // Don't populate password for editing
         role: user.role || 'USER',
         status: user.status || 'ACTIVE'
       })
@@ -28,7 +26,6 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
       setFormData({
         name: '',
         email: '',
-        password: '',
         role: 'USER',
         status: 'ACTIVE'
       })
@@ -69,13 +66,6 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
       newErrors.email = 'Email không hợp lệ'
     }
     
-    // Password is required only for new users
-    if (!user && !formData.password) {
-      newErrors.password = 'Mật khẩu là bắt buộc'
-    } else if (formData.password && formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự'
-    }
-    
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -87,13 +77,7 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
 
     setLoading(true)
     try {
-      // Prepare data - don't send password if it's empty (for updates)
-      const dataToSend = { ...formData }
-      if (user && !formData.password) {
-        delete dataToSend.password
-      }
-      
-      await onSave(dataToSend)
+      await onSave(formData)
       onClose()
     } catch (error) {
       console.error('Error saving user:', error)
@@ -140,23 +124,10 @@ const UserModal = ({ isOpen, onClose, user, onSave }) => {
                 onChange={handleChange}
                 placeholder="example@email.com"
                 className={errors.email ? 'error' : ''}
+                disabled={user ? true : false}
               />
               {errors.email && <span className="error-text">{errors.email}</span>}
-            </div>
-
-            <div className="form-group">
-              <label>
-                Mật khẩu {user ? '(để trống nếu không đổi)' : '*'}
-              </label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder={user ? 'Nhập mật khẩu mới' : 'Nhập mật khẩu'}
-                className={errors.password ? 'error' : ''}
-              />
-              {errors.password && <span className="error-text">{errors.password}</span>}
+              {user && <small style={{color: '#6b7280', fontSize: '0.875rem'}}>Email không thể thay đổi</small>}
             </div>
 
             <div className="form-row">

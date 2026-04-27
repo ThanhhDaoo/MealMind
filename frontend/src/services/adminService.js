@@ -99,10 +99,8 @@ export const adminService = {
   // Meal Plans Management
   getUserMealPlans: async (userId) => {
     try {
-      const response = await api.get('/admin/meal-plans')
-      // Filter meal plans by userId
-      const allPlans = response.data
-      return allPlans.filter(plan => plan.user && plan.user.id === userId)
+      const response = await api.get(`/admin/users/${userId}/meal-plans`)
+      return response.data
     } catch (error) {
       console.error('Error fetching user meal plans:', error)
       return []
