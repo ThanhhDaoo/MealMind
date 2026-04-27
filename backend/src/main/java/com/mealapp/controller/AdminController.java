@@ -64,10 +64,23 @@ public class AdminController {
     }
     
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok(user);
+        
+        UserDTO dto = new UserDTO();
+        dto.setId(user.getId());
+        dto.setName(user.getName());
+        dto.setEmail(user.getEmail());
+        dto.setRole(user.getRole());
+        dto.setStatus(user.getStatus());
+        dto.setAvatar(user.getAvatar());
+        dto.setPhone(user.getPhone());
+        dto.setCreatedAt(user.getCreatedAt());
+        dto.setLastLogin(user.getLastLogin());
+        
+        return ResponseEntity.ok(dto);
     }
     
     @PostMapping("/users")

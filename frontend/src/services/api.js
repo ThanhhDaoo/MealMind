@@ -28,11 +28,18 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('API Error:', error)
-    if (error.response?.status === 401) {
+    
+    // Handle authentication errors (401 or 500 with expired token)
+    if (error.response?.status === 401 || 
+        (error.response?.status === 500 && error.response?.data?.message?.includes('JWT expired'))) {
       localStorage.removeItem('authToken')
       localStorage.removeItem('token')
-      // Don't redirect to login for admin pages, just log the error
-      console.warn('Unauthorized access, but continuing...')
+      localStorage.removeItem('user')
+      
+      // Redirect to login page
+      if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }

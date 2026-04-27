@@ -18,6 +18,13 @@ const FoodDetail = () => {
         const foodData = await foodService.getFoodById(id)
         console.log('Food data received:', foodData)
         setFood(foodData)
+        
+        // Check if this food is in favorites
+        const savedFavorites = localStorage.getItem('favorites')
+        if (savedFavorites) {
+          const favorites = JSON.parse(savedFavorites)
+          setIsFavorite(favorites.some(fav => fav.id === parseInt(id)))
+        }
       } catch (error) {
         console.error('Error fetching food:', error)
         // Chỉ fallback khi thực sự không load được
@@ -79,7 +86,29 @@ const FoodDetail = () => {
   }
 
   const toggleFavorite = () => {
-    setIsFavorite(!isFavorite)
+    const savedFavorites = localStorage.getItem('favorites')
+    let favorites = savedFavorites ? JSON.parse(savedFavorites) : []
+    
+    if (isFavorite) {
+      // Remove from favorites
+      favorites = favorites.filter(fav => fav.id !== parseInt(id))
+      setIsFavorite(false)
+    } else {
+      // Add to favorites
+      const favoriteItem = {
+        id: parseInt(id),
+        name: food.name,
+        description: food.description,
+        image: food.imageUrl || food.image,
+        cookTime: `${food.totalTime || food.prepTime || 30} phút`,
+        calories: food.calories || 650,
+        servings: food.servings || 2
+      }
+      favorites.push(favoriteItem)
+      setIsFavorite(true)
+    }
+    
+    localStorage.setItem('favorites', JSON.stringify(favorites))
   }
 
   if (loading) {
@@ -147,8 +176,9 @@ const FoodDetail = () => {
             <button 
               className={`favorite-btn ${isFavorite ? 'active' : ''}`}
               onClick={toggleFavorite}
+              title={isFavorite ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
             >
-              <i className={`fas fa-heart ${isFavorite ? 'filled' : ''}`}></i>
+              <i className={`${isFavorite ? 'fas' : 'far'} fa-heart`}></i>
             </button>
           </div>
         </div>

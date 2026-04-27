@@ -6,6 +6,7 @@ import FoodList from './pages/FoodList'
 import FoodDetail from './pages/FoodDetail'
 import MealPlan from './pages/MealPlan'
 import Favorite from './pages/Favorite'
+import Profile from './pages/Profile'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import AIRecommendationPage from './pages/AIRecommendationPage'
@@ -35,7 +36,8 @@ function AppContent() {
           <Route path="/foods/:id" element={<FoodDetail />} />
           <Route path="/meal-plan" element={<MealPlan />} />
           <Route path="/ai-recommendation" element={<AIRecommendationPage />} />
-          <Route path="/favorites" element={<Favorite />} />
+          <Route path="/favorite" element={<Favorite />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           

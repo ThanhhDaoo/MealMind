@@ -2,6 +2,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/icon?family=Material+Icons');
 
+/* Spin animation for refresh button */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Users Management Layout */
 .users-management {
   display: flex;
@@ -747,6 +757,14 @@
 
 .action-icon.edit:hover .material-icons {
   color: #16a34a;
+}
+
+.action-icon.view:hover {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.action-icon.view:hover .material-icons {
+  color: #3b82f6;
 }
 
 .action-icon.delete:hover {

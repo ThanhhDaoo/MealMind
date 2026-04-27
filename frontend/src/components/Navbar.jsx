@@ -1,11 +1,50 @@
-import { Link, useLocation } from 'react-router-dom'
-import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useState, useEffect, useRef } from 'react'
+import './Navbar.css'
 
 const Navbar = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const [user, setUser] = useState(null)
+  const userMenuRef = useRef(null)
+
+  useEffect(() => {
+    // Get user from localStorage
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+      }
+    }
+  }, [])
+
+  // Close user menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setUserMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const isActive = (path) => location.pathname === path
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    setUserMenuOpen(false)
+    navigate('/login')
+  }
 
   return (
     <nav className="navbar">
@@ -67,9 +106,67 @@ const Navbar = () => {
           <Link to="/ai-recommendation" className="cta-primary">
             Gợi ý ngay
           </Link>
-          <Link to="/login" className="user-icon-link" title="Đăng nhập">
-            <span className="user-icon">👤</span>
-          </Link>
+          
+          {user ? (
+            <div className="user-menu-wrapper" ref={userMenuRef}>
+              <button 
+                className="user-icon-button" 
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                title={user.name || user.email}
+              >
+                <span className="user-icon">👤</span>
+              </button>
+              
+              {userMenuOpen && (
+                <div className="user-dropdown-menu">
+                  <div className="user-dropdown-header">
+                    <div className="user-avatar">👤</div>
+                    <div className="user-info">
+                      <p className="user-name">{user.name || 'User'}</p>
+                      <p className="user-email">{user.email}</p>
+                    </div>
+                  </div>
+                  <div className="user-dropdown-divider"></div>
+                  <Link 
+                    to="/profile" 
+                    className="user-dropdown-item"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <span className="dropdown-icon">👤</span>
+                    Thông tin cá nhân
+                  </Link>
+                  <Link 
+                    to="/favorite" 
+                    className="user-dropdown-item"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <span className="dropdown-icon">❤️</span>
+                    Món ăn yêu thích
+                  </Link>
+                  <Link 
+                    to="/meal-plan" 
+                    className="user-dropdown-item"
+                    onClick={() => setUserMenuOpen(false)}
+                  >
+                    <span className="dropdown-icon">📅</span>
+                    Kế hoạch của tôi
+                  </Link>
+                  <div className="user-dropdown-divider"></div>
+                  <button 
+                    className="user-dropdown-item logout"
+                    onClick={handleLogout}
+                  >
+                    <span className="dropdown-icon">🚪</span>
+                    Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link to="/login" className="user-icon-link" title="Đăng nhập">
+              <span className="user-icon">👤</span>
+            </Link>
+          )}
         </div>
       </div>
     </nav>
