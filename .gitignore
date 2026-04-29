@@ -8,6 +8,9 @@ backend/src/main/resources/application.properties
 backend/src/main/resources/application-*.properties
 !backend/src/main/resources/application.properties.example
 
+# Maven build artifacts
+backend/target/
+
 # Logs
 *.log
 logs/
