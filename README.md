@@ -79,112 +79,43 @@ Dành Cho Quản Trị Viên:
 
 Công Nghệ Sử Dụng
 Backend
-
-|     Công Nghệ     |         Mục Đích 
-| Java 17           | Ngôn ngữ lập trình chính  |
-| Spring Boot 3.2   | Framework ứng dụng        |
-| Spring Security   | Xác thực & phân quyền.    |
-| Spring Data JPA   | Database ORM              |
-| JWT (jjwt 0.11.5) | Xác thực dựa trên token   |
-| Hibernate         | Object-relational mapping |
-| Maven.            | Quản lý dependencies      |
-| Lombok            | Giảm boilerplate code     |
+ - Java 17: Ngôn ngữ lập trình chính được sử dụng để xây dựng toàn bộ backend system.
+ - Spring Boot 3.2: Framework chính hỗ trợ phát triển RESTful APIs, quản lý dependency và cấu hình  ứng dụng nhanh chóng.
+ - Spring Security: Triển khai xác thực và phân quyền người dùng, bảo vệ các API endpoints và hỗ trợ RBAC (Role-Based Access Control).
+ - Spring Data JPA: Hỗ trợ thao tác cơ sở dữ liệu theo mô hình ORM thông qua Repository Pattern.
+ - JWT (jjwt 0.11.5): Áp dụng cơ chế xác thực stateless bằng token để quản lý phiên đăng nhập người dùng.
+ - Hibernate: ORM framework dùng để ánh xạ giữa Java Objects và Database Tables.
+ - Maven: Công cụ quản lý dependencies, build project và tự động hóa quá trình phát triển ứng dụng.
+ - Lombok: Giảm boilerplate code bằng cách tự động tạo getter, setter, constructor và utility methods.
 
 Frontend
-
-|    Công Nghệ       |      Mục Đích           |
-| React 18           | Thư viện UI             |
-| React Router DOM 6 | Định tuyến client-side  |
-| Axio               | HTTP client             |
-| Vite               | Build tool & dev server |
-| CSS3               | Styling                 |
+ - React 18: Thư viện JavaScript được sử dụng để xây dựng giao diện người dùng theo mô hình component-based architecture.
+ - React Router DOM 6: Hỗ trợ định tuyến phía client (client-side routing), cho phép điều hướng giữa các trang mà không cần reload lại ứng dụng.
+ - Axios: HTTP client dùng để gửi và xử lý các API requests giữa frontend và backend.
+ - Vite: Build tool và development server giúp tăng tốc độ khởi động dự án và tối ưu quá trình phát triển frontend.
+ - CSS3: Được sử dụng để thiết kế giao diện, responsive layout và cải thiện trải nghiệm người dùng.
 
 Database
+ - Microsoft SQL Server: Hệ quản trị cơ sở dữ liệu chính được sử dụng để lưu trữ và quản lý dữ liệu của hệ thống, hỗ trợ transaction management, indexing và tối ưu truy vấn.
+ - H2 Database: Cơ sở dữ liệu in-memory được sử dụng cho quá trình testing và development, giúp kiểm thử nhanh mà không cần cấu hình SQL Server đầy đủ.
 
-|     Công Nghệ        |      Mục Đích         |
-| Microsoft SQL Server | Database chính        |
-| H2 Database          | Testing & development |
+
 
 Tích Hợp AI
+ - OpenAI API: Được tích hợp để tạo các gợi ý món ăn và kế hoạch bữa ăn cá nhân hóa dựa trên mục tiêu sức khỏe, sở thích ăn uống và nhu cầu dinh dưỡng của người dùng.
+ - Spring WebFlux: Reactive framework được sử dụng để thực hiện các HTTP requests bất đồng bộ tới OpenAI API, hỗ trợ xử lý non-blocking và cải thiện hiệu suất khi tích hợp external services.
 
-|   Công Nghệ    |     Mục Đích          |
-| OpenAI API.    | Gợi ý món ăn từ AI    |
-| Spring WebFlux | Reactive HTTP client  |
 
 Kiến Trúc Hệ Thống
-┌─────────────────────────────────────────────────────────────┐
-│                      LỚP CLIENT                             │
-│                                                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  React SPA   │  │   Routing    │  │  State Mgmt  │       │
-│  │  Components  │  │ (React Router)│  │   (Hooks)    │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-└─────────────────────────────────────────────────────────────┘
-                            │
-                            │ HTTP/HTTPS (REST API)
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                   LỚP PRESENTATION                          │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Spring MVC Controllers                     │   │
-│  │  • AuthController    • FoodController                │   │
-│  │  • AdminController   • MealPlanController            │   │
-│  │  • AiController                                      │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                     LỚP BẢO MẬT                             │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │         JWT Authentication Filter                    │   │
-│  │  • Xác thực token    • Trích xuất user               │   │
-│  │  • Kiểm soát truy cập theo vai trò (RBAC)            │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                   LỚP BUSINESS LOGIC                        │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │                Service Classes                       │   │
-│  │  • AuthService       • FoodService                   │   │
-│  │  • MealPlanService   • OpenAiService                 │   │
-│  │  • JwtService                                        │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                   LỚP PERSISTENCE                           │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │       Spring Data JPA Repositories                   │   │
-│  │  • UserRepository    • FoodRepository                │   │
-│  │  • MealPlanRepository • IngredientRepository         │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                      LỚP DỮ LIỆU                            │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │           Microsoft SQL Server                       │   │
-│  │  • 14+ bảng chuẩn hóa                                │   │
-│  │  • Triggers & indexes                                │   │
-│  │  • Tính toàn vẹn tham chiếu                          │   │
-│  └──────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-                            │
-┌─────────────────────────────────────────────────────────────┐
-│                   DỊCH VỤ BÊN NGOÀI                         │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │                 OpenAI API                           │   │ 
-│  │  • Gợi ý món ăn dựa trên GPT                         │   │
-│  │  • Xử lý ngôn ngữ tự nhiên                           │   │
-│  └──────────────────────────────────────────────────────┘   │ 
-└─────────────────────────────────────────────────────────────┘
+ - Client Layer: Frontend sử dụng React SPA, React Router và Hooks để xây dựng giao diện và quản lý state.
+ - Presentation Layer: Các Spring MVC Controllers tiếp nhận request và trả response thông qua REST API.
+ - Security Layer: Spring Security kết hợp JWT Authentication Filter để xác thực người dùng và phân quyền RBAC.
+ - Business Logic Layer: Các Service classes xử lý business logic như authentication, meal planning và AI recommendation.
+ - Persistence Layer: Spring Data JPA Repositories thực hiện thao tác truy cập dữ liệu theo Repository Pattern.
+ - Data Layer: Microsoft SQL Server lưu trữ dữ liệu với hệ thống bảng chuẩn hóa, indexes và constraints.
+ - External Services: Tích hợp OpenAI API để tạo gợi ý món ăn và kế hoạch bữa ăn thông minh bằng AI.
+
+
 
 Luồng Xử Lý Request:
 Luồng Đăng Nhập:
@@ -201,95 +132,26 @@ Luồng Đăng Nhập:
 
 
 Thiết Kế Database (ERD)
-Sơ Đồ Quan Hệ Thực Thể
-┌─────────────────┐
-│     USERS       │
-├─────────────────┤
-│ PK id           │
-│    name         │
-│    email        │◄────────┐
-│    password     │         │
-│    role         │         │
-│    status       │         │
-│    health_data  │         │
-└─────────────────┘         │
-        │                   │
-        │ 1:N               │ 1:N
-        │                   │
-        ▼                   │
-┌─────────────────┐         │
-│   MEAL_PLANS    │         │
-├─────────────────┤         │
-│ PK id           │         │
-│ FK user_id      │─────────┘
-│    name         │
-│    week_start   │
-│    week_end     │
-│    status       │
-└─────────────────┘
-        │
-        │ 1:N
-        │
-        ▼
-┌─────────────────┐         ┌─────────────────┐
-│ MEAL_PLAN_ITEMS │         │     FOODS       │
-├─────────────────┤         ├─────────────────┤
-│ PK id           │         │ PK id           │
-│ FK meal_plan_id │         │    name         │
-│ FK food_id      │─────────┤    description  │
-│    day_of_week  │   N:1   │    image        │
-│    meal_type    │         │    calories     │
-│    servings     │         │    nutrition    │
-│    is_completed │         │    category     │
-└─────────────────┘         │    cuisine      │
-                            │    rating       │
-                            └─────────────────┘
-                                    │
-                                    │ 1:N
-                    ┌───────────────┼───────────────┐
-                    │               │               │
-                    ▼               ▼               ▼
-            ┌─────────────┐ ┌─────────────┐ ┌─────────────┐
-            │ INGREDIENTS │ │INSTRUCTIONS │ │   REVIEWS   │
-            ├─────────────┤ ├─────────────┤ ├─────────────┤
-            │ PK id       │ │ PK id       │ │ PK id       │
-            │ FK food_id  │ │ FK food_id  │ │ FK food_id  │
-            │    name     │ │ instruction │ │ FK user_id  │
-            │    amount   │ │ step_order  │ │    rating   │
-            │    unit     │ └─────────────┘ │    comment  │
-            └─────────────┘                 └─────────────┘
-
-┌─────────────────────┐
-│ USER_FAVORITE_FOODS │
-├─────────────────────┤
-│ PK user_id          │───┐
-│ PK food_id          │   │ N:M
-└─────────────────────┘   │ (Many-to-Many)
-                          │
-        ┌─────────────────┘
-        │
-        ▼
-┌─────────────────────┐
-│ AI_RECOMMENDATIONS  │
-├─────────────────────┤
-│ PK id               │
-│ FK user_id          │
-│ FK food_id          │
-│    type             │
-│    reason           │
-│    confidence_score │
-└─────────────────────┘
+- Cơ sở dữ liệu của MealMind được thiết kế theo mô hình quan hệ và chuẩn hóa nhằm đảm bảo tính toàn vẹn dữ liệu và tối ưu hiệu suất truy vấn.
+   - USERS: Lưu trữ thông tin người dùng như tên, email, mật khẩu, vai trò và dữ liệu sức khỏe. Một user có thể tạo nhiều kế hoạch bữa ăn và đánh giá món ăn.
+   - MEAL_PLANS: Quản lý kế hoạch bữa ăn theo tuần của người dùng, bao gồm thời gian bắt đầu, kết thúc và trạng thái kế hoạch.
+   - MEAL_PLAN_ITEMS: Lưu chi tiết từng bữa ăn trong kế hoạch như món ăn, loại bữa ăn, số lượng khẩu phần và trạng thái hoàn thành.
+   - FOODS: Chứa thông tin công thức món ăn như calories, dinh dưỡng, danh mục, hình ảnh và đánh giá.
+   - INGREDIENTS: Lưu danh sách nguyên liệu của từng món ăn cùng số lượng và đơn vị đo lường.
+   - INSTRUCTIONS: Lưu các bước hướng dẫn nấu ăn theo thứ tự thực hiện.
+   - REVIEWS: Cho phép người dùng đánh giá và nhận xét các món ăn trong hệ thống.
+   - USER_FAVORITE_FOODS: Bảng trung gian thể hiện mối quan hệ nhiều-nhiều giữa users và foods cho tính năng yêu thích món ăn.
+   - AI_RECOMMENDATIONS: Lưu các gợi ý món ăn được tạo từ AI dựa trên nhu cầu và mục tiêu dinh dưỡng của người dùng.
 
 Các Bảng Chính:
-|       Bảng          | Số Bản Ghi |         Mục Đích                   |
-| users               | ~100       | Tài khoản và hồ sơ người dùng      |
-| foods               | 500+       | Danh mục công thức                 |
-| ingredients         | 3000+      | Nguyên liệu công thức              |
-| food_instructions   | 2000+      | Các bước nấu ăn                    |
-| meal_plans          | ~200       | Kế hoạch bữa ăn của người dùng     |
-| meal_plan_items     | ~1400      | Các bữa ăn riêng lẻ trong kế hoạch |
-| food_reviews        | ~300       | Đánh giá và nhận xét               |
-| user_favorite_foods | ~500       | Món ăn yêu thích (M:N)             |
+ - users (~100 records): Lưu thông tin tài khoản, vai trò và hồ sơ sức khỏe của người dùng.
+ - foods (500+ records): Lưu danh sách công thức món ăn cùng thông tin dinh dưỡng và phân loại món ăn.
+ - ingredients (3000+ records): Lưu nguyên liệu chi tiết cho từng công thức món ăn.
+ - food_instructions (2000+ records): Lưu các bước hướng dẫn nấu ăn theo thứ tự thực hiện.
+ - meal_plans (~200 records): Quản lý kế hoạch bữa ăn theo tuần của người dùng.
+ - meal_plan_items (~1400 records): Lưu chi tiết từng bữa ăn trong mỗi kế hoạch như món ăn, loại bữa ăn và khẩu phần.
+ - food_reviews (~300 records): Lưu đánh giá và nhận xét của người dùng về các món ăn.
+ - user_favorite_foods (~500 records): Lưu danh sách món ăn yêu thích của người dùng theo quan hệ nhiều-nhiều (M:N).
 
 Đặc Điểm Database:
 - ✅ Chuẩn hóa đến 3NF
@@ -320,7 +182,6 @@ Response: 200 OK
     "role": "USER"
   }
 }
-```
 
 - Đăng Nhập
 POST /api/auth/login
