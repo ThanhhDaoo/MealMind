@@ -1,0 +1,40 @@
+fix: Sửa lỗi backend build, authentication và password validation
+
+## Các lỗi đã sửa:
+
+### 1. Backend Build Failure (500 Error)
+- Thêm giá trị mặc định cho JWT_SECRET, DB credentials trong application.properties
+- Backend khởi động thành công trên port 8080
+
+### 2. Register API - 400 Bad Request
+- Sửa frontend gửi đúng format JSON object thay vì 3 tham số riêng lẻ
+- Thêm password validation ở frontend với regex
+- Thêm gợi ý password requirements trong form
+- Auto login sau khi register thành công
+
+### 3. Login API - 500 Internal Server Error
+- Tạo tài khoản test mới với password hợp lệ
+- Cải thiện error messages để hiển thị lỗi rõ ràng hơn
+- Hướng dẫn user về yêu cầu password
+
+### 4. Password Validation
+- Password phải có: 8+ ký tự, chữ hoa, chữ thường, số, ký tự đặc biệt
+- Thêm validation ở cả frontend và backend
+- Thêm thông báo lỗi rõ ràng
+
+## Files thay đổi:
+- backend/src/main/resources/application.properties
+- frontend/src/pages/Login.jsx
+- README.md
+- SETUP_GUIDE.md (new)
+- FIXES_SUMMARY.md (new)
+
+## Tài khoản test:
+- Email: testuser@example.com
+- Password: Test@123456
+
+## Trạng thái:
+✅ Backend: Running on http://localhost:8080
+✅ Frontend: Running on http://localhost:5173
+✅ Database: Connected
+✅ Authentication: Working

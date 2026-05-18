@@ -33,6 +33,15 @@ const Login = () => {
       return
     }
 
+    // Validate password strength for registration
+    if (!isLogin) {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
+      if (!passwordRegex.test(formData.password)) {
+        alert('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)')
+        return
+      }
+    }
+
     if (!isLogin && !formData.agreeTerms) {
       alert('Vui lòng đồng ý với điều khoản dịch vụ!')
       return
@@ -45,7 +54,14 @@ const Login = () => {
       if (isLogin) {
         response = await authService.login(formData.email, formData.password)
       } else {
-        response = await authService.register(formData.name, formData.email, formData.password)
+        const registerData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password
+        }
+        const registerResponse = await authService.register(registerData)
+        // After successful registration, log the user in
+        response = await authService.login(formData.email, formData.password)
       }
       
       // Redirect based on user role
@@ -56,7 +72,8 @@ const Login = () => {
       }
     } catch (error) {
       console.error('Auth error:', error)
-      alert(isLogin ? 'Đăng nhập thất bại!' : 'Đăng ký thất bại!')
+      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra'
+      alert(isLogin ? `Đăng nhập thất bại! ${errorMessage}` : `Đăng ký thất bại! ${errorMessage}`)
     } finally {
       setLoading(false)
     }
@@ -189,6 +206,11 @@ const Login = () => {
                         {showPassword ? '👁️' : '👁️‍🗨️'}
                       </span>
                     </div>
+                    {!isLogin && (
+                      <small style={{ color: '#888', fontSize: '12px', marginTop: '4px', display: 'block' }}>
+                        Tối thiểu 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+                      </small>
+                    )}
                   </div>
 
                   {!isLogin && (

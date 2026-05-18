@@ -311,6 +311,38 @@ Hướng Dẫn Cài Đặt
   - Maven 3.6+
 - Git
 
+## ⚠️ QUAN TRỌNG: Yêu Cầu Password
+
+Khi đăng ký tài khoản mới, password phải đáp ứng TẤT CẢ các điều kiện sau:
+- ✅ **Tối thiểu 8 ký tự**
+- ✅ **Có chữ HOA** (A-Z)
+- ✅ **Có chữ thường** (a-z)
+- ✅ **Có số** (0-9)
+- ✅ **Có ký tự đặc biệt** (!@#$%^&*()_+-=[]{}; ':"\\|,.<>/?)
+
+### Ví dụ Password Hợp Lệ:
+- ✅ `Admin@123456`
+- ✅ `Test@123456`
+- ✅ `MyPass#2024`
+- ✅ `Secure!Pass123`
+
+### Ví dụ Password KHÔNG Hợp Lệ:
+- ❌ `Admin123` (thiếu ký tự đặc biệt)
+- ❌ `admin@123` (thiếu chữ HOA)
+- ❌ `ADMIN@123` (thiếu chữ thường)
+- ❌ `Admin@abc` (thiếu số)
+- ❌ `Admin@1` (quá ngắn)
+
+## 🎯 Tài Khoản Test Có Sẵn
+
+Sau khi cài đặt xong, bạn có thể sử dụng các tài khoản test sau:
+
+**User thường:**
+- Email: `testuser@example.com`
+- Password: `Test@123456`
+
+**Hoặc tạo tài khoản mới** tại `http://localhost:5173` với password đáp ứng yêu cầu trên.
+
 Cài Đặt Backend
 1. Clone repository
    git clone https://github.com/ThanhhDaoo/MealMind.git
@@ -571,12 +603,6 @@ Zalo: 0362625218
 
 License
 Dự án này được tạo ra cho mục đích học tập và portfolio.
-
-Lời Cảm Ơn
--Spring Framework Team - Tài liệu xuất sắc
--React Community - Tài nguyên và tutorials hữu ích
--OpenAI - Tích hợp AI API
--Stack Overflow - Hỗ trợ giải quyết vấn đề
 
 ⭐ Nếu bạn thấy dự án này thú vị, hãy cho một star nhé! ⭐
 
