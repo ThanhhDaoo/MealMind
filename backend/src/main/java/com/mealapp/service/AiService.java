@@ -24,6 +24,9 @@ public class AiService {
     
     @Autowired
     private OpenAiService openAiService;
+
+    @Autowired
+    private GeminiService geminiService;
     
     private final Random random = new Random();
     
@@ -176,7 +179,7 @@ public class AiService {
             filteredFoods = allFoods;
         }
         
-        // Convert foods to simple map for OpenAI
+        // Convert foods to simple map for AI
         List<Map<String, Object>> foodMaps = filteredFoods.stream()
             .map(food -> {
                 Map<String, Object> map = new HashMap<>();
@@ -190,10 +193,20 @@ public class AiService {
             })
             .collect(Collectors.toList());
         
-        // Get recommended food IDs from OpenAI
-        List<Long> recommendedIds = openAiService.getRecommendedFoodIds(
-            ingredients, dietaryRestrictions, mealType, foodMaps
-        );
+        // Try Gemini first (free), then OpenAI, then fallback
+        List<Long> recommendedIds = new ArrayList<>();
+
+        if (geminiService.isAvailable()) {
+            recommendedIds = geminiService.getRecommendedFoodIds(
+                ingredients, dietaryRestrictions, mealType, foodMaps
+            );
+        }
+
+        if (recommendedIds.isEmpty()) {
+            recommendedIds = openAiService.getRecommendedFoodIds(
+                ingredients, dietaryRestrictions, mealType, foodMaps
+            );
+        }
         
         // Get Food objects by IDs
         List<Food> recommendations = new ArrayList<>();
@@ -201,7 +214,7 @@ public class AiService {
             foodRepository.findById(id).ifPresent(recommendations::add);
         }
         
-        // If not enough recommendations, add random foods
+        // If not enough recommendations, add random foods from filtered list
         while (recommendations.size() < 3 && recommendations.size() < filteredFoods.size()) {
             Food randomFood = filteredFoods.get(random.nextInt(filteredFoods.size()));
             if (!recommendations.contains(randomFood)) {

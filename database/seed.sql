@@ -5,12 +5,12 @@ GO
 -- Insert sample users
 SET IDENTITY_INSERT users ON;
 INSERT INTO users (id, name, email, password, role, status, avatar, last_login) VALUES 
-(1, N'Lê Minh Anh', 'minhanh.le@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 'ACTIVE', 'https://i.pravatar.cc/150?img=12', DATEADD(MINUTE, -2, GETDATE())),
-(2, N'Trần Hoàng Nam', 'nam.tran@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=33', DATEADD(HOUR, -10, GETDATE())),
-(3, N'Phạm Đức Thịnh', 'thinh.pham@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=68', DATEADD(DAY, -1, GETDATE())),
-(4, N'Nguyễn Thu Thảo', 'thao.nguyen@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'ADMIN', 'ACTIVE', 'https://i.pravatar.cc/150?img=45', DATEADD(DAY, -3, GETDATE())),
-(5, N'Võ Minh Tuấn', 'tuan.vo@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', 'INACTIVE', 'https://i.pravatar.cc/150?img=15', DATEADD(DAY, -7, GETDATE())),
-(6, N'Đặng Thị Hương', 'huong.dang@email.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=47', DATEADD(HOUR, -5, GETDATE()));
+(1, N'Lê Minh Anh', 'minhanh.le@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'ADMIN', 'ACTIVE', 'https://i.pravatar.cc/150?img=12', DATEADD(MINUTE, -2, GETDATE())),
+(2, N'Trần Hoàng Nam', 'nam.tran@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=33', DATEADD(HOUR, -10, GETDATE())),
+(3, N'Phạm Đức Thịnh', 'thinh.pham@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=68', DATEADD(DAY, -1, GETDATE())),
+(4, N'Nguyễn Thu Thảo', 'thao.nguyen@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'ADMIN', 'ACTIVE', 'https://i.pravatar.cc/150?img=45', DATEADD(DAY, -3, GETDATE())),
+(5, N'Võ Minh Tuấn', 'tuan.vo@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'USER', 'INACTIVE', 'https://i.pravatar.cc/150?img=15', DATEADD(DAY, -7, GETDATE())),
+(6, N'Đặng Thị Hương', 'huong.dang@email.com', '$2a$10$V5v.mUUdT.aZGKtHQXKnwueIDqbW2nJdyW.urVNxXUJm4n9cYn.0.', 'USER', 'ACTIVE', 'https://i.pravatar.cc/150?img=47', DATEADD(HOUR, -5, GETDATE()));
 SET IDENTITY_INSERT users OFF;
 GO
 

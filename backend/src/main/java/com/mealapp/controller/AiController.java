@@ -7,6 +7,7 @@ import com.mealapp.model.User;
 import com.mealapp.repository.MealPlanRepository;
 import com.mealapp.repository.UserRepository;
 import com.mealapp.service.AiService;
+import com.mealapp.service.GeminiService;
 import com.mealapp.service.MealPlanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +26,9 @@ public class AiController {
 
     @Autowired
     private AiService aiService;
+
+    @Autowired
+    private GeminiService geminiService;
 
     @Autowired
     private MealPlanService mealPlanService;
@@ -108,6 +113,22 @@ public class AiController {
         return ResponseEntity.ok(recommendations);
     }
 
+    // ─── 6. Chat AI - Hỏi đáp dinh dưỡng ───────────────────────────────────────
+    @PostMapping("/chat")
+    public ResponseEntity<Map<String, String>> chat(@RequestBody ChatRequest request) {
+        String reply = geminiService.chat(request.getMessage(), request.getContext());
+        return ResponseEntity.ok(Map.of("reply", reply));
+    }
+
+    // ─── 7. Kiểm tra trạng thái AI ──────────────────────────────────────────────
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getAiStatus() {
+        Map<String, Object> status = new HashMap<>();
+        status.put("geminiAvailable", geminiService.isAvailable());
+        status.put("provider", geminiService.isAvailable() ? "Google Gemini (Free)" : "Fallback (keyword matching)");
+        return ResponseEntity.ok(status);
+    }
+
     // ─── Inner DTO classes ───────────────────────────────────────────────────────
 
     public static class RecommendationRequest {
@@ -139,5 +160,15 @@ public class AiController {
         public Integer getDays() { return days; }
         public void setDays(Integer days) { this.days = days; }
     }
-}
 
+    public static class ChatRequest {
+        private String message;
+        private String context;
+
+        public String getMessage() { return message; }
+        public void setMessage(String message) { this.message = message; }
+
+        public String getContext() { return context; }
+        public void setContext(String context) { this.context = context; }
+    }
+}

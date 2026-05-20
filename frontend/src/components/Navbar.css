@@ -111,14 +111,16 @@
   background: var(--surface-2);
   color: var(--text-secondary);
   transition: all var(--duration-fast) var(--ease-out);
+  border: 1.5px solid var(--border);
 }
 
 .user-icon-link:hover {
   background: var(--brand-50);
   color: var(--brand-700);
+  border-color: var(--brand-200);
 }
 
-.user-icon {
+.user-icon-link .material-icons {
   font-size: var(--fs-md);
 }
 
@@ -160,8 +162,10 @@
   justify-content: center;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
   color: white;
-  font-weight: 600;
-  font-size: var(--fs-md);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
   transition: transform var(--duration-fast) var(--ease-out),
               box-shadow var(--duration-fast) var(--ease-out);
   box-shadow: var(--shadow-brand-sm);
@@ -172,8 +176,8 @@
   box-shadow: var(--shadow-brand);
 }
 
-.user-icon-button .user-icon {
-  font-size: var(--fs-md);
+.user-icon-button .user-initial {
+  line-height: 1;
 }
 
 .user-dropdown-menu {
@@ -209,6 +213,8 @@
   justify-content: center;
   color: white;
   font-size: var(--fs-md);
+  font-weight: 700;
+  font-family: var(--font-display);
   flex-shrink: 0;
 }
 

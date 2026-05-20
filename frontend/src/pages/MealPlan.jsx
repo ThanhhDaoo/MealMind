@@ -193,18 +193,31 @@ const MealPlan = () => {
   const handleGenerateMealPlan = async () => {
     try {
       setLoading(true)
+      // Always use today's date to satisfy @FutureOrToday validation
+      const today = new Date()
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      
       const request = {
-        weekStartDate: weekStartDate.toISOString().split('T')[0],
+        weekStartDate: todayStr,
         caloriesPerDay: 2000,
         dietaryPreferences: []
       }
       
       const newPlan = await mealPlanService.generateMealPlan(request)
+      // Update view to show the generated plan's week
+      setWeekStartDate(today)
       await loadMealPlan()
       alert('Đã tạo kế hoạch ăn uống mới!')
     } catch (error) {
       console.error('Error generating meal plan:', error)
-      alert('Không thể tạo kế hoạch. Vui lòng thử lại.')
+      const data = error.response?.data
+      let msg = 'Không thể tạo kế hoạch. Vui lòng thử lại.'
+      if (data?.details) {
+        msg = Object.values(data.details).join(', ')
+      } else if (data?.message) {
+        msg = data.message
+      }
+      alert(msg)
     } finally {
       setLoading(false)
     }

@@ -273,10 +273,7 @@ const Home = () => {
         </div>
       </div>
 
-      {/* FAB for Quick AI */}
-      <Link to="/ai-recommendation" className="fab-button">
-        <span className="material-icons">auto_awesome</span>
-      </Link>
+      {/* AI Chat is now handled by AIChatBox component in App.jsx */}
     </div>
   )
 }

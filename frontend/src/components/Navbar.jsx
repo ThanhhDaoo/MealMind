@@ -105,13 +105,17 @@ const Navbar = () => {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 title={user.name || user.email}
               >
-                <span className="user-icon">👤</span>
+                <span className="user-initial">
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                </span>
               </button>
               
               {userMenuOpen && (
                 <div className="user-dropdown-menu">
                   <div className="user-dropdown-header">
-                    <div className="user-avatar">👤</div>
+                    <div className="user-avatar">
+                      {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                    </div>
                     <div className="user-info">
                       <p className="user-name">{user.name || 'User'}</p>
                       <p className="user-email">{user.email}</p>
@@ -155,7 +159,7 @@ const Navbar = () => {
             </div>
           ) : (
             <Link to="/login" className="user-icon-link" title="Đăng nhập">
-              <span className="user-icon">👤</span>
+              <span className="material-icons">person</span>
             </Link>
           )}
         </div>

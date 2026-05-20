@@ -68,4 +68,26 @@ export const aiService = {
       throw error
     }
   },
+
+  // 6. Chat AI - Hỏi đáp dinh dưỡng
+  chat: async (message, context = '') => {
+    try {
+      const response = await api.post('/ai/chat', { message, context })
+      return response.data.reply
+    } catch (error) {
+      console.error('Error chatting with AI:', error)
+      throw error
+    }
+  },
+
+  // 7. Kiểm tra trạng thái AI
+  getStatus: async () => {
+    try {
+      const response = await api.get('/ai/status')
+      return response.data
+    } catch (error) {
+      console.error('Error getting AI status:', error)
+      return { geminiAvailable: false, provider: 'Offline' }
+    }
+  },
 }

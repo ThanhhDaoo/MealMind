@@ -69,6 +69,7 @@
 }
 
 .settings-card .card-header {
+  display: block;
   margin-bottom: var(--sp-6);
   padding-bottom: var(--sp-4);
   border-bottom: 1px solid var(--border-soft);
@@ -252,30 +253,39 @@
 /* ============================================
    Data tab
    ============================================ */
-.data-actions {
+.data-management {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--sp-4);
 }
 
-.data-action-card {
+.data-section {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
   background: var(--surface-2);
   border: 1px solid transparent;
   border-radius: var(--r-lg);
-  padding: var(--sp-5);
-  display: flex;
-  flex-direction: column;
-  gap: var(--sp-3);
   transition: all var(--duration-fast) var(--ease-out);
 }
 
-.data-action-card:hover {
+.data-section:hover {
   border-color: var(--brand-200);
   background: var(--surface);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-sm);
 }
 
-.data-action-card .action-icon-large {
+.data-section.danger {
+  background: #fef2f2;
+}
+
+.data-section.danger:hover {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.data-section .data-icon {
   width: 48px;
   height: 48px;
   border-radius: var(--r-md);
@@ -284,32 +294,49 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.data-action-card .action-icon-large .material-icons {
-  font-size: 24px;
-}
-
-.data-action-card.danger .action-icon-large {
-  background: #fef2f2;
+.data-section.danger .data-icon {
+  background: #fee2e2;
   color: var(--danger);
 }
 
-.data-action-card h4 {
+.data-section .data-icon .material-icons {
+  font-size: 22px;
+}
+
+.data-section .data-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.data-section .data-info h4 {
   font-family: var(--font-display);
   font-size: var(--fs-base);
   font-weight: 700;
   color: var(--text-primary);
 }
 
-.data-action-card p {
+.data-section .data-info p {
   font-size: var(--fs-sm);
   color: var(--text-secondary);
+  line-height: var(--lh-snug);
 }
 
-.data-action-card button {
+/* Override the conflicting .action-btn from UsersManagement.css */
+.data-management .action-btn {
+  width: auto;
+  height: auto;
   align-self: flex-start;
-  padding: 0.55rem 1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  padding: 0.55rem 1.1rem;
   border-radius: var(--r-full);
   background: var(--brand-600);
   color: white;
@@ -317,17 +344,37 @@
   font-size: var(--fs-sm);
   border: none;
   cursor: pointer;
-  transition: background var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+  box-shadow: var(--shadow-brand-sm);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.data-action-card button:hover {
+.data-management .action-btn:hover {
   background: var(--brand-700);
+  transform: translateY(-1px);
+  color: white;
 }
 
-.data-action-card.danger button {
+.data-management .action-btn .material-icons {
+  font-size: var(--fs-md);
+}
+
+.data-management .action-btn.danger {
   background: var(--danger);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
 }
 
-.data-action-card.danger button:hover {
+.data-management .action-btn.danger:hover {
   background: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .data-section {
+    flex-direction: column;
+  }
+
+  .data-management .action-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

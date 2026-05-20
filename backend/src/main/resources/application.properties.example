@@ -1,7 +1,12 @@
+# ============================================
+# MealMind - Application Properties (EXAMPLE)
+# ============================================
+# Copy this file to application.properties and fill in your values.
+
 # Database Configuration
-spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=mealmind_db;encrypt=true;trustServerCertificate=true
-spring.datasource.username=YOUR_DB_USERNAME
-spring.datasource.password=YOUR_DB_PASSWORD
+spring.datasource.url=jdbc:sqlserver://${DB_HOST:localhost}:${DB_PORT:1433};databaseName=${DB_NAME:mealmind_db};encrypt=true;trustServerCertificate=true
+spring.datasource.username=${DB_USERNAME:SA}
+spring.datasource.password=${DB_PASSWORD:your-db-password}
 spring.datasource.driver-class-name=com.microsoft.sqlserver.jdbc.SQLServerDriver
 
 # JPA Configuration
@@ -15,20 +20,24 @@ spring.jpa.open-in-view=false
 server.port=8080
 
 # JWT Configuration
-app.jwt.secret=YOUR_JWT_SECRET_HERE_MINIMUM_32_CHARACTERS
-app.jwt.expiration=86400000
+app.jwt.secret=${JWT_SECRET:change-this-to-a-random-256-bit-key}
+app.jwt.expiration=${JWT_EXPIRATION:86400000}
 
 # CORS Configuration
-app.cors.allowed-origins=http://localhost:5173
+app.cors.allowed-origins=${CORS_ORIGINS:http://localhost:5173}
 
 # File Upload Configuration
 spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 
 # Logging Configuration
-logging.level.com.mealapp=INFO
-logging.level.org.springframework.security=INFO
+logging.level.com.mealapp=DEBUG
+logging.level.org.springframework.security=DEBUG
 logging.level.org.hibernate=ERROR
+logging.level.org.springframework.web=DEBUG
 
-# OpenAI Configuration
-openai.api.key=YOUR_OPENAI_API_KEY_HERE
+# OpenAI Configuration (optional - fallback if Gemini unavailable)
+openai.api.key=${OPENAI_API_KEY:}
+
+# Google Gemini Configuration (FREE - get key at https://aistudio.google.com/apikey)
+gemini.api.key=${GEMINI_API_KEY:}
