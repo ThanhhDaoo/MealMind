@@ -63,7 +63,7 @@ const Register = () => {
   }
 
   return (
-    <div className="login-container">
+    <div className="login-container register-page">
       <div className="login-left">
         <div className="login-content">
           <div className="login-header">

@@ -100,7 +100,7 @@ const Home = () => {
           <div className="hero-content">
             <div className="glass-card">
               <h2 className="hero-title">
-                Hôm nay nấu gì, Linh?
+                Hôm nay nấu gì?
               </h2>
               <p className="hero-subtitle">
                 Bạn có {pantryItems.length} nguyên liệu trong tủ lạnh có thể tạo ra món Salad Lúa Mạch & Bơ tuyệt vời.

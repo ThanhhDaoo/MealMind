@@ -49,19 +49,10 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo">
-          🍜 MealMind
+        <Link to="/" className="nav-logo" onClick={() => setMobileMenuOpen(false)}>
+          <span aria-hidden="true">🍜</span>
+          <span>MealMind</span>
         </Link>
-        
-        {/* Mobile Menu Toggle */}
-        <button 
-          className="mobile-menu-toggle"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
 
         <ul className={`nav-menu ${mobileMenuOpen ? 'mobile-open' : ''}`}>
           <li className="nav-item">
@@ -168,6 +159,18 @@ const Navbar = () => {
             </Link>
           )}
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <button 
+          className="mobile-menu-toggle"
+          aria-label="Toggle menu"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
     </nav>
   )
