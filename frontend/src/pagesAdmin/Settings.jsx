@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { adminService } from '../services/adminService'
+import api from '../services/api'
 import './AdminLayout.css'
 import './Settings.css'
 
@@ -48,16 +49,14 @@ const Settings = () => {
 
   const fetchCurrentProfile = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/admin/profile')
-      if (response.ok) {
-        const data = await response.json()
-        setProfileData({
-          name: data.name || 'Quản trị viên',
-          email: data.email || 'mealmind@admin.vn',
-          phone: data.phone || '',
-          avatar: data.avatar || 'https://i.pravatar.cc/150?img=68'
-        })
-      }
+      const response = await api.get('/admin/profile')
+      const data = response.data
+      setProfileData({
+        name: data.name || 'Quản trị viên',
+        email: data.email || 'mealmind@admin.vn',
+        phone: data.phone || '',
+        avatar: data.avatar || 'https://i.pravatar.cc/150?img=68'
+      })
     } catch (error) {
       console.error('Error fetching profile:', error)
     }
@@ -84,24 +83,12 @@ const Settings = () => {
     e.preventDefault()
     try {
       setSaving(true)
-      const response = await fetch('http://localhost:8080/api/admin/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: profileData.name,
-          email: profileData.email,
-          phone: profileData.phone
-        })
+      await api.put('/admin/profile', {
+        name: profileData.name,
+        email: profileData.email,
+        phone: profileData.phone
       })
-      
-      if (response.ok) {
-        alert('Cập nhật thông tin thành công!')
-      } else {
-        const error = await response.text()
-        alert('Có lỗi: ' + error)
-      }
+      alert('Cập nhật thông tin thành công!')
     } catch (error) {
       console.error('Error updating profile:', error)
       alert('Có lỗi khi cập nhật thông tin!')
@@ -125,28 +112,16 @@ const Settings = () => {
 
     try {
       setSaving(true)
-      const response = await fetch('http://localhost:8080/api/admin/change-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword
-        })
+      await api.post('/admin/change-password', {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
       })
-      
-      if (response.ok) {
-        alert('Đổi mật khẩu thành công!')
-        setPasswordData({
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        })
-      } else {
-        const error = await response.text()
-        alert('Có lỗi: ' + error)
-      }
+      alert('Đổi mật khẩu thành công!')
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
     } catch (error) {
       console.error('Error changing password:', error)
       alert('Có lỗi khi đổi mật khẩu!')
