@@ -108,11 +108,11 @@ public class Food {
     // Relationships
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<Ingredient> ingredients = new ArrayList<>();
+    private Set<Ingredient> ingredients = new HashSet<>();
     
     @OneToMany(mappedBy = "food", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
-    private List<FoodInstruction> instructions = new ArrayList<>();
+    private Set<FoodInstruction> instructions = new HashSet<>();
     
     @ManyToMany(mappedBy = "favoriteFoods", fetch = FetchType.LAZY)
     @JsonIgnore

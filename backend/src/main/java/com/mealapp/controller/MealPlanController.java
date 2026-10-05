@@ -45,9 +45,10 @@ public class MealPlanController {
     // Get meal plans by date
     @GetMapping
     public ResponseEntity<List<MealPlan>> getMealPlansByDate(
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         Long userId = getCurrentUserId();
-        List<MealPlan> mealPlans = mealPlanService.getMealPlansByDate(userId, date);
+        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        List<MealPlan> mealPlans = mealPlanService.getMealPlansByDate(userId, targetDate);
         return ResponseEntity.ok(mealPlans);
     }
     
