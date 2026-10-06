@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom'
 import Navbar from './components/Navbar'
+import BottomNav from './components/BottomNav'
 import Footer from './components/Footer'
 import AIChatBox from './components/AIChatBox'
 import Home from './pages/Home'
@@ -49,6 +50,7 @@ function AppContent() {
       </main>
       {!isAdminRoute && !isAuthRoute && <Footer />}
       {!isAdminRoute && !isAuthRoute && <AIChatBox />}
+      {!isAdminRoute && !isAuthRoute && <BottomNav />}
     </div>
   )
 }

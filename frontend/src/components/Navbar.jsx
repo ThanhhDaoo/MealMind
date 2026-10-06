@@ -2,10 +2,16 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import './Navbar.css'
 
+const navItems = [
+  { path: '/', label: 'Tổng quan' },
+  { path: '/foods', label: 'Món ăn' },
+  { path: '/meal-plan', label: 'Kế hoạch' },
+  { path: '/ai-recommendation', label: 'AI Gợi ý' }
+]
+
 const Navbar = () => {
   const location = useLocation()
   const navigate = useNavigate()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [user, setUser] = useState(null)
   const userMenuRef = useRef(null)
@@ -20,7 +26,7 @@ const Navbar = () => {
         console.error('Error parsing user data:', error)
       }
     }
-  }, [])
+  }, [location.pathname])
 
   // Close user menu when clicking outside
   useEffect(() => {
@@ -36,7 +42,10 @@ const Navbar = () => {
     }
   }, [])
 
-  const isActive = (path) => location.pathname === path
+  const isActive = (path) => {
+    if (path === '/') return location.pathname === '/'
+    return location.pathname.startsWith(path)
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -49,50 +58,27 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        <Link to="/" className="nav-logo" onClick={() => setMobileMenuOpen(false)}>
+        {/* Brand Logo */}
+        <Link to="/" className="nav-logo">
           <span aria-hidden="true">🍜</span>
           <span>MealMind</span>
         </Link>
 
-        <ul className={`nav-menu ${mobileMenuOpen ? 'mobile-open' : ''}`}>
-          <li className="nav-item">
-            <Link 
-              to="/" 
-              className={`nav-link ${isActive('/') ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Tổng quan
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link 
-              to="/foods" 
-              className={`nav-link ${isActive('/foods') ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Món ăn
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link 
-              to="/meal-plan" 
-              className={`nav-link ${isActive('/meal-plan') ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              Kế hoạch 
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link 
-              to="/ai-recommendation" 
-              className={`nav-link ${isActive('/ai-recommendation') ? 'active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              AI Gợi ý
-            </Link>
-          </li>
+        {/* Desktop Navigation Tabs */}
+        <ul className="nav-menu">
+          {navItems.map((item) => (
+            <li key={item.path} className="nav-item">
+              <Link 
+                to={item.path} 
+                className={`nav-link ${isActive(item.path) ? 'active' : ''}`}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
         </ul>
         
+        {/* Actions (Desktop CTA + User Profile) */}
         <div className="nav-actions">
           <Link to="/ai-recommendation" className="cta-primary">
             Gợi ý ngay
@@ -163,18 +149,6 @@ const Navbar = () => {
             </Link>
           )}
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <button 
-          className="mobile-menu-toggle"
-          aria-label="Toggle menu"
-          aria-expanded={mobileMenuOpen}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
       </div>
     </nav>
   )

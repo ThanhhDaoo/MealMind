@@ -5,7 +5,7 @@
 /* Toggle button */
 .chat-toggle {
   position: fixed;
-  bottom: var(--sp-6);
+  bottom: calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
   right: var(--sp-6);
   width: 60px;
   height: 60px;
@@ -358,19 +358,51 @@
 /* ============================================
    Mobile responsive
    ============================================ */
+@media (max-width: 768px) {
+  .chat-toggle {
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+    right: var(--sp-4);
+    width: 52px;
+    height: 52px;
+  }
+
+  .chat-window {
+    bottom: calc(130px + env(safe-area-inset-bottom, 0px));
+    right: var(--sp-4);
+    max-height: calc(100vh - 160px);
+  }
+}
+
 @media (max-width: 480px) {
   .chat-window {
-    width: calc(100vw - var(--sp-4));
-    right: var(--sp-2);
-    bottom: calc(var(--sp-4) + 68px);
-    height: calc(100vh - 140px);
-    border-radius: var(--r-xl);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border: none;
+    z-index: 1000;
+  }
+
+  .chat-header {
+    padding-top: max(env(safe-area-inset-top, 0px), 16px);
+    padding-left: var(--sp-4);
+    padding-right: var(--sp-4);
+    padding-bottom: var(--sp-3);
+  }
+
+  .chat-input {
+    padding-bottom: calc(var(--sp-3) + env(safe-area-inset-bottom, 0px));
   }
 
   .chat-toggle {
-    bottom: var(--sp-4);
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px));
     right: var(--sp-4);
-    width: 54px;
-    height: 54px;
+    width: 52px;
+    height: 52px;
   }
 }
