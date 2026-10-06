@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService'
 import './Profile.css'
 
 const Profile = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -35,12 +36,10 @@ const Profile = () => {
         })
       } catch (error) {
         console.error('Error parsing user data:', error)
-        navigate('/login')
       }
-    } else {
-      navigate('/login')
     }
-  }, [navigate])
+    setCheckingAuth(false)
+  }, [])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -180,11 +179,64 @@ const Profile = () => {
     }
   }
 
-  if (!user) {
+  if (checkingAuth) {
     return (
       <div className="profile-container">
         <div className="loading-state">
-          <p>Đang tải...</p>
+          <div className="spinner"></div>
+          <p>Đang tải thông tin...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="profile-container guest-profile-container">
+        <div className="guest-profile-card">
+          <div className="guest-avatar-wrap">
+            <span className="material-symbols-outlined guest-avatar-icon">person</span>
+          </div>
+
+          <h1 className="guest-title">Chào mừng đến với MealMind</h1>
+          <p className="guest-desc">
+            Đăng nhập để lưu món ăn yêu thích, lên kế hoạch thực đơn dinh dưỡng và mở khóa toàn bộ tính năng gợi ý thông minh từ AI.
+          </p>
+
+          <div className="guest-actions">
+            <Link to="/login" className="btn btn-primary btn-lg guest-btn">
+              <span className="material-symbols-outlined">login</span>
+              Đăng nhập tài khoản
+            </Link>
+            <Link to="/register" className="btn btn-secondary btn-lg guest-btn">
+              <span className="material-symbols-outlined">person_add</span>
+              Tạo tài khoản mới
+            </Link>
+          </div>
+
+          <div className="guest-benefits">
+            <div className="benefit-item">
+              <span className="benefit-icon">🥗</span>
+              <div className="benefit-text">
+                <h4>Quản lý thực đơn</h4>
+                <p>Lưu trữ và theo dõi các bữa ăn khoa học mỗi ngày</p>
+              </div>
+            </div>
+            <div className="benefit-item">
+              <span className="benefit-icon">📊</span>
+              <div className="benefit-text">
+                <h4>Chỉ số dinh dưỡng</h4>
+                <p>Tự động tính toán Calories, Protein & Carbs</p>
+              </div>
+            </div>
+            <div className="benefit-item">
+              <span className="benefit-icon">✨</span>
+              <div className="benefit-text">
+                <h4>Trợ lý AI 24/7</h4>
+                <p>Đề xuất món ngon tức thì theo nguyên liệu có sẵn</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     )

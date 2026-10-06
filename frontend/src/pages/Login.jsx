@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService'
 import './Login.css'
 
@@ -98,11 +98,27 @@ const Login = () => {
 
       {/* Header */}
       <header className="login-header">
-        <div className="logo-text">MealMind</div>
-        <div className="help-link">
-          <span className="help-icon">❓</span>
-          <span>Trợ giúp</span>
-        </div>
+        <button 
+          type="button" 
+          className="login-back-btn" 
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1)
+            } else {
+              navigate('/')
+            }
+          }}
+          aria-label="Quay lại"
+        >
+          <span className="material-symbols-outlined">arrow_back</span>
+          <span className="back-text">Quay lại</span>
+        </button>
+
+        <Link to="/" className="logo-text">🍜 MealMind</Link>
+
+        <Link to="/" className="close-btn" aria-label="Đóng" title="Về trang chủ">
+          <span className="material-symbols-outlined">close</span>
+        </Link>
       </header>
 
       {/* Main Content */}
@@ -282,6 +298,11 @@ const Login = () => {
                       {isLogin ? 'Đăng ký ngay' : 'Đăng nhập ngay'}
                     </button>
                   </p>
+                  <div className="guest-return">
+                    <Link to="/" className="guest-return-link">
+                      ← Tiếp tục khám phá không cần đăng nhập
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

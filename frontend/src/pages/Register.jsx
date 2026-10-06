@@ -67,13 +67,30 @@ const Register = () => {
       <div className="login-left">
         <div className="login-content">
           <div className="login-header">
-            <Link to="/" className="back-to-home">
-              ← Về trang chủ
-            </Link>
-            <div className="logo">
+            <button 
+              type="button" 
+              className="login-back-btn" 
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1)
+                } else {
+                  navigate('/')
+                }
+              }}
+              aria-label="Quay lại"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="back-text">Quay lại</span>
+            </button>
+
+            <Link to="/" className="logo">
               <span className="logo-icon">🍜</span>
               <span className="logo-text">MealMind</span>
-            </div>
+            </Link>
+
+            <Link to="/" className="close-btn" aria-label="Đóng" title="Về trang chủ">
+              <span className="material-symbols-outlined">close</span>
+            </Link>
           </div>
 
           <div className="login-form-section">
