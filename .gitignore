@@ -11,8 +11,10 @@ backend/src/main/resources/application-*.properties
 # Maven build artifacts
 backend/target/
 
-# Frontend build output
+# Frontend build output and dependencies
 frontend/dist/
+node_modules/
+frontend/node_modules/
 
 # Logs
 *.log

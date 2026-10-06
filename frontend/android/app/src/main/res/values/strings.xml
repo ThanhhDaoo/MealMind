@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MealMind</string>
+    <string name="title_activity_main">MealMind</string>
+    <string name="package_name">com.mealmind.app</string>
+    <string name="custom_url_scheme">com.mealmind.app</string>
+</resources>
