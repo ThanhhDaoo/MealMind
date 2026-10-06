@@ -590,7 +590,7 @@
    ============================================ */
 .fab-button {
   position: fixed;
-  bottom: var(--sp-8);
+  bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 0px));
   right: var(--sp-8);
   width: 60px;
   height: 60px;
