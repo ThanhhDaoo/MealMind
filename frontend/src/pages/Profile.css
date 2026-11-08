@@ -11,14 +11,18 @@
 
 .profile-header {
   display: flex;
-  flex-direction: column;
-  gap: var(--sp-2);
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-4);
   margin-bottom: var(--sp-8);
   padding-bottom: var(--sp-6);
   border-bottom: 1px solid var(--border-soft);
-  max-width: none;
-  padding-left: 0;
-  padding-right: 0;
+}
+
+.profile-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
 }
 
 .profile-header h1 {
@@ -32,6 +36,33 @@
 .profile-header p {
   color: var(--text-secondary);
   font-size: var(--fs-md);
+}
+
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 0.65rem 1.25rem;
+  border-radius: var(--r-full);
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fee2e2;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  white-space: nowrap;
+}
+
+.btn-logout .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.btn-logout:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+  transform: translateY(-1px);
 }
 
 /* ============================================
@@ -150,6 +181,13 @@
 .profile-avatar-large .avatar-icon {
   font-size: 32px;
   color: white;
+}
+
+.profile-avatar-large .avatar-initial {
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
 }
 
 .avatar-info h3 {
@@ -387,14 +425,117 @@
   margin: 0;
 }
 
+/* ============================================
+   Profile Shortcuts Card
+   ============================================ */
+.profile-shortcuts-card {
+  grid-column: 1 / -1;
+}
+
+.profile-shortcuts-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--sp-4);
+}
+
+.profile-shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.profile-shortcut-item:hover {
+  background: var(--surface-3);
+  border-color: var(--brand-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.shortcut-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--r-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shortcut-icon-wrap.favorite {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+.shortcut-icon-wrap.plan {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.shortcut-icon-wrap.ai {
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.shortcut-icon-wrap.admin {
+  background: #f5f3ff;
+  color: #8b5cf6;
+}
+
+.shortcut-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.shortcut-title {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.shortcut-desc {
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.shortcut-arrow {
+  font-size: 20px;
+  color: var(--text-tertiary);
+  transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.profile-shortcut-item:hover .shortcut-arrow {
+  color: var(--brand-600);
+  transform: translateX(3px);
+}
+
 @media (max-width: 768px) {
   .profile-container {
     padding: var(--sp-4) var(--sp-4) var(--sp-12);
   }
+  .profile-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-4);
+  }
   .profile-header h1 {
     font-size: var(--fs-2xl);
   }
+  .btn-logout {
+    width: 100%;
+    justify-content: center;
+  }
   .profile-content {
+    grid-template-columns: 1fr;
+  }
+  .profile-shortcuts-list {
     grid-template-columns: 1fr;
   }
   .form-actions {

@@ -51,6 +51,7 @@ const Register = () => {
 
       if (response.token) {
         localStorage.setItem('token', response.token)
+        localStorage.setItem('authToken', response.token)
         localStorage.setItem('user', JSON.stringify(response.user))
         navigate('/')
       }

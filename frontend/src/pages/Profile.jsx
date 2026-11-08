@@ -179,6 +179,13 @@ const Profile = () => {
     }
   }
 
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    navigate('/login')
+  }
+
   if (checkingAuth) {
     return (
       <div className="profile-container">
@@ -245,8 +252,19 @@ const Profile = () => {
   return (
     <div className="profile-container">
       <div className="profile-header">
-        <h1>Thông tin cá nhân</h1>
-        <p>Quản lý thông tin tài khoản của bạn</p>
+        <div className="profile-header-info">
+          <h1>Thông tin cá nhân</h1>
+          <p>Quản lý thông tin tài khoản và bảo mật của bạn</p>
+        </div>
+        <button 
+          type="button" 
+          className="btn-logout" 
+          onClick={handleLogout}
+          title="Đăng xuất khỏi tài khoản"
+        >
+          <span className="material-symbols-outlined">logout</span>
+          <span>Đăng xuất</span>
+        </button>
       </div>
 
       {message.text && (
@@ -277,7 +295,9 @@ const Profile = () => {
           <form onSubmit={handleUpdateProfile}>
             <div className="profile-avatar-section">
               <div className="profile-avatar-large">
-                <span className="avatar-icon">👤</span>
+                <span className="avatar-initial">
+                  {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                </span>
               </div>
               <div className="avatar-info">
                 <h3>{user.name || 'User'}</h3>
@@ -410,6 +430,60 @@ const Profile = () => {
               </button>
             </div>
           </form>
+        </div>
+
+        {/* Quick Shortcuts Card */}
+        <div className="profile-card profile-shortcuts-card">
+          <div className="card-header">
+            <h2>Lối tắt nhanh</h2>
+          </div>
+          <div className="profile-shortcuts-list">
+            <Link to="/favorite" className="profile-shortcut-item">
+              <div className="shortcut-icon-wrap favorite">
+                <span className="material-symbols-outlined">favorite</span>
+              </div>
+              <div className="shortcut-text">
+                <span className="shortcut-title">Món ăn yêu thích</span>
+                <span className="shortcut-desc">Xem các món ăn bạn đã lưu lại</span>
+              </div>
+              <span className="material-symbols-outlined shortcut-arrow">chevron_right</span>
+            </Link>
+
+            <Link to="/meal-plan" className="profile-shortcut-item">
+              <div className="shortcut-icon-wrap plan">
+                <span className="material-symbols-outlined">calendar_month</span>
+              </div>
+              <div className="shortcut-text">
+                <span className="shortcut-title">Kế hoạch bữa ăn</span>
+                <span className="shortcut-desc">Theo dõi thực đơn tuần của bạn</span>
+              </div>
+              <span className="material-symbols-outlined shortcut-arrow">chevron_right</span>
+            </Link>
+
+            <Link to="/ai-recommendation" className="profile-shortcut-item">
+              <div className="shortcut-icon-wrap ai">
+                <span className="material-symbols-outlined">auto_awesome</span>
+              </div>
+              <div className="shortcut-text">
+                <span className="shortcut-title">Gợi ý thông minh AI</span>
+                <span className="shortcut-desc">Đề xuất món ngon theo nguyên liệu</span>
+              </div>
+              <span className="material-symbols-outlined shortcut-arrow">chevron_right</span>
+            </Link>
+
+            {user.role === 'ADMIN' && (
+              <Link to="/admin" className="profile-shortcut-item admin">
+                <div className="shortcut-icon-wrap admin">
+                  <span className="material-symbols-outlined">admin_panel_settings</span>
+                </div>
+                <div className="shortcut-text">
+                  <span className="shortcut-title">Trang quản trị</span>
+                  <span className="shortcut-desc">Quản lý món ăn, người dùng và hệ thống</span>
+                </div>
+                <span className="material-symbols-outlined shortcut-arrow">chevron_right</span>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>
