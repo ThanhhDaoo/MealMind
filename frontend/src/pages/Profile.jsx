@@ -25,25 +25,46 @@ const Profile = () => {
   const [message, setMessage] = useState({ type: '', text: '' })
 
   useEffect(() => {
-    // Get user from localStorage
+    // 1. Get user from localStorage first for instant render
     const userData = localStorage.getItem('user')
-    if (userData) {
+    if (userData && userData !== 'undefined') {
       try {
         const parsedUser = JSON.parse(userData)
         setUser(parsedUser)
-        setFormData({
+        setFormData(prev => ({
+          ...prev,
           name: parsedUser.name || '',
           email: parsedUser.email || '',
-          phone: parsedUser.phone || '',
-          currentPassword: '',
-          newPassword: '',
-          confirmPassword: ''
-        })
+          phone: parsedUser.phone || ''
+        }))
       } catch (error) {
         console.error('Error parsing user data:', error)
       }
     }
-    setCheckingAuth(false)
+
+    // 2. Fetch fresh user profile from backend
+    if (authService.isAuthenticated()) {
+      authService.getProfile()
+        .then(freshUser => {
+          if (freshUser) {
+            setUser(freshUser)
+            setFormData(prev => ({
+              ...prev,
+              name: freshUser.name || '',
+              email: freshUser.email || '',
+              phone: freshUser.phone || ''
+            }))
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching latest profile:', error)
+        })
+        .finally(() => {
+          setCheckingAuth(false)
+        })
+    } else {
+      setCheckingAuth(false)
+    }
   }, [])
 
   const handleChange = (e) => {
@@ -189,10 +210,12 @@ const Profile = () => {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    localStorage.removeItem('authToken')
-    localStorage.removeItem('user')
-    navigate('/login')
+    if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi tài khoản MealMind?')) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('authToken')
+      localStorage.removeItem('user')
+      navigate('/login')
+    }
   }
 
   if (checkingAuth) {
@@ -310,7 +333,15 @@ const Profile = () => {
               </div>
               <div className="avatar-info">
                 <h3>{user.name || 'User'}</h3>
-                <p className="user-role">{user.role === 'ADMIN' ? 'Quản trị viên' : 'Người dùng'}</p>
+                <div className="avatar-meta">
+                  <span className="user-role">{user.role === 'ADMIN' ? 'Quản trị viên' : 'Người dùng'}</span>
+                  {user.createdAt && (
+                    <span className="user-join-date">
+                      <span className="material-symbols-outlined join-icon">calendar_today</span>
+                      Tham gia {new Date(user.createdAt).toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

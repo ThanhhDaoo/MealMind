@@ -198,6 +198,14 @@
   margin-bottom: var(--sp-1);
 }
 
+.avatar-info .avatar-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
 .avatar-info .user-role {
   display: inline-block;
   font-size: var(--fs-xs);
@@ -206,6 +214,19 @@
   border-radius: var(--r-full);
   background: var(--brand-100);
   color: var(--brand-700);
+}
+
+.avatar-info .user-join-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  color: var(--text-tertiary);
+}
+
+.avatar-info .user-join-date .join-icon {
+  font-size: 14px;
+  color: var(--brand-600);
 }
 
 /* Form */

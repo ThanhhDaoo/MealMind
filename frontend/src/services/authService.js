@@ -51,12 +51,24 @@ export const authService = {
     return token
   },
 
+  // Get current user profile from server
+  getProfile: async () => {
+    const response = await api.get('/auth/profile')
+    const user = response.data?.user || response.data
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user))
+    }
+    return user
+  },
+
   // Update user profile
   updateProfile: async (userData) => {
     const response = await api.put('/auth/profile', userData)
-    const { user } = response.data
-    localStorage.setItem('user', JSON.stringify(user))
-    return response.data
+    const user = response.data?.user || response.data
+    if (user) {
+      localStorage.setItem('user', JSON.stringify(user))
+    }
+    return user
   },
 
   // Change password
