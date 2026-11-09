@@ -5,12 +5,12 @@ export const authService = {
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password })
     const { token, id, name, email: userEmail, role } = response.data
-    
     const user = { id, name, email: userEmail, role }
-    
+
     localStorage.setItem('authToken', token)
+    localStorage.setItem('token', token)
     localStorage.setItem('user', JSON.stringify(user))
-    
+
     return user
   },
 
@@ -20,34 +20,41 @@ export const authService = {
     return response.data
   },
 
-  // Logout user
+  // Logout user and clear stored credentials
   logout: () => {
     localStorage.removeItem('authToken')
+    localStorage.removeItem('token')
     localStorage.removeItem('user')
     window.location.href = '/login'
   },
 
-  // Get current user
+  // Get current user from localStorage safely
   getCurrentUser: () => {
     const userStr = localStorage.getItem('user')
-    return userStr ? JSON.parse(userStr) : null
+    if (!userStr || userStr === 'undefined') return null
+    try {
+      return JSON.parse(userStr)
+    } catch {
+      return null
+    }
   },
 
   // Check if user is authenticated
   isAuthenticated: () => {
-    return !!localStorage.getItem('authToken')
+    return !!(localStorage.getItem('authToken') || localStorage.getItem('token'))
   },
 
-  // Get auth token
+  // Get current authentication token
   getToken: () => {
-    return localStorage.getItem('authToken')
+    return localStorage.getItem('authToken') || localStorage.getItem('token')
   },
 
-  // Refresh token
+  // Refresh auth token
   refreshToken: async () => {
     const response = await api.post('/auth/refresh')
     const { token } = response.data
     localStorage.setItem('authToken', token)
+    localStorage.setItem('token', token)
     return token
   },
 
@@ -80,3 +87,5 @@ export const authService = {
     return response.data
   }
 }
+
+export default authService

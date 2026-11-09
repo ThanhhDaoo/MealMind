@@ -1,63 +1,83 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService'
+import { isValidEmail, isValidPhone, isStrongPassword, PASSWORD_REQUIREMENTS_MESSAGE } from '../utils/validation'
 import './Profile.css'
 
 const Profile = () => {
   const navigate = useNavigate()
+  const timerRef = useRef(null)
+
   const [user, setUser] = useState(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState({
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+
+  const [profileForm, setProfileForm] = useState({
     name: '',
     email: '',
-    phone: '',
+    phone: ''
+  })
+
+  const [passwordForm, setPasswordForm] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   })
+
   const [showPassword, setShowPassword] = useState({
     current: false,
     new: false,
     confirm: false
   })
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState({ type: '', text: '' })
 
+  // Display notification with auto-hide and cleanup
+  const showNotification = (type, text, duration = 3000) => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    setMessage({ type, text })
+    if (duration > 0) {
+      timerRef.current = setTimeout(() => {
+        setMessage({ type: '', text: '' })
+      }, duration)
+    }
+  }
+
+  // Cleanup notification timer on unmount
   useEffect(() => {
-    // 1. Get user from localStorage first for instant render
-    const userData = localStorage.getItem('user')
-    if (userData && userData !== 'undefined') {
-      try {
-        const parsedUser = JSON.parse(userData)
-        setUser(parsedUser)
-        setFormData(prev => ({
-          ...prev,
-          name: parsedUser.name || '',
-          email: parsedUser.email || '',
-          phone: parsedUser.phone || ''
-        }))
-      } catch (error) {
-        console.error('Error parsing user data:', error)
-      }
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
+
+  // Sync profile data on mount
+  useEffect(() => {
+    // 1. Initial render from cached user
+    const cachedUser = authService.getCurrentUser()
+    if (cachedUser) {
+      setUser(cachedUser)
+      setProfileForm({
+        name: cachedUser.name || '',
+        email: cachedUser.email || '',
+        phone: cachedUser.phone || ''
+      })
     }
 
-    // 2. Fetch fresh user profile from backend
+    // 2. Fetch fresh user profile from server
     if (authService.isAuthenticated()) {
       authService.getProfile()
         .then(freshUser => {
           if (freshUser) {
             setUser(freshUser)
-            setFormData(prev => ({
-              ...prev,
+            setProfileForm({
               name: freshUser.name || '',
               email: freshUser.email || '',
               phone: freshUser.phone || ''
-            }))
+            })
           }
         })
         .catch(error => {
-          console.error('Error fetching latest profile:', error)
+          console.error('Failed to sync profile from server:', error)
         })
         .finally(() => {
           setCheckingAuth(false)
@@ -67,9 +87,17 @@ const Profile = () => {
     }
   }, [])
 
-  const handleChange = (e) => {
+  const handleProfileChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({
+    setProfileForm(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target
+    setPasswordForm(prev => ({
       ...prev,
       [name]: value
     }))
@@ -77,63 +105,38 @@ const Profile = () => {
 
   const handleUpdateProfile = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setMessage({ type: '', text: '' })
 
+    const name = profileForm.name.trim()
+    const email = profileForm.email.trim()
+    const phone = profileForm.phone.trim()
+
     // Validation
-    if (!formData.name || formData.name.trim() === '') {
-      setMessage({ type: 'error', text: 'Vui lòng nhập họ và tên!' })
-      setLoading(false)
+    if (!name) {
+      showNotification('error', 'Vui lòng nhập họ và tên!', 4000)
       return
     }
 
-    if (!formData.email || formData.email.trim() === '') {
-      setMessage({ type: 'error', text: 'Vui lòng nhập email!' })
-      setLoading(false)
+    if (!isValidEmail(email)) {
+      showNotification('error', 'Định dạng email không hợp lệ!', 4000)
       return
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(formData.email)) {
-      setMessage({ type: 'error', text: 'Email không hợp lệ!' })
-      setLoading(false)
+    if (!isValidPhone(phone)) {
+      showNotification('error', 'Số điện thoại phải có 10-11 chữ số!', 4000)
       return
-    }
-
-    // Phone validation (optional but if provided, must be valid)
-    if (formData.phone && formData.phone.trim() !== '') {
-      const phoneRegex = /^[0-9]{10,11}$/
-      if (!phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
-        setMessage({ type: 'error', text: 'Số điện thoại phải có 10-11 chữ số!' })
-        setLoading(false)
-        return
-      }
     }
 
     try {
-      const response = await authService.updateProfile({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        phone: formData.phone.trim()
-      })
-      
-      // Update user in state and localStorage
-      const updatedUser = response.user || response
+      setLoading(true)
+      const updatedUser = await authService.updateProfile({ name, email, phone })
       setUser(updatedUser)
-      localStorage.setItem('user', JSON.stringify(updatedUser))
-      
       setIsEditing(false)
-      setMessage({ type: 'success', text: '✓ Cập nhật thông tin thành công!' })
-      
-      // Auto hide success message after 3 seconds
-      setTimeout(() => {
-        setMessage({ type: '', text: '' })
-      }, 3000)
+      showNotification('success', '✓ Cập nhật thông tin thành công!')
     } catch (error) {
       console.error('Error updating profile:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra. Vui lòng thử lại!'
-      setMessage({ type: 'error', text: '✗ ' + errorMessage })
+      const errorText = error.response?.data?.message || error.message || 'Có lỗi xảy ra. Vui lòng thử lại!'
+      showNotification('error', '✗ ' + errorText, 5000)
     } finally {
       setLoading(false)
     }
@@ -141,69 +144,43 @@ const Profile = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setMessage({ type: '', text: '' })
 
-    // Validation
-    if (!formData.currentPassword || formData.currentPassword.trim() === '') {
-      setMessage({ type: 'error', text: '✗ Vui lòng nhập mật khẩu hiện tại!' })
-      setLoading(false)
+    const { currentPassword, newPassword, confirmPassword } = passwordForm
+
+    if (!currentPassword) {
+      showNotification('error', '✗ Vui lòng nhập mật khẩu hiện tại!', 4000)
       return
     }
 
-    if (!formData.newPassword || formData.newPassword.trim() === '') {
-      setMessage({ type: 'error', text: '✗ Vui lòng nhập mật khẩu mới!' })
-      setLoading(false)
+    if (!isStrongPassword(newPassword)) {
+      showNotification('error', `✗ ${PASSWORD_REQUIREMENTS_MESSAGE}`, 5000)
       return
     }
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
-    if (!passwordRegex.test(formData.newPassword)) {
-      setMessage({
-        type: 'error',
-        text: '✗ Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)'
-      })
-      setLoading(false)
+    if (newPassword !== confirmPassword) {
+      showNotification('error', '✗ Mật khẩu xác nhận không khớp!', 4000)
       return
     }
 
-    if (!formData.confirmPassword || formData.confirmPassword.trim() === '') {
-      setMessage({ type: 'error', text: '✗ Vui lòng xác nhận mật khẩu mới!' })
-      setLoading(false)
-      return
-    }
-
-    if (formData.newPassword !== formData.confirmPassword) {
-      setMessage({ type: 'error', text: '✗ Mật khẩu xác nhận không khớp!' })
-      setLoading(false)
-      return
-    }
-
-    if (formData.currentPassword === formData.newPassword) {
-      setMessage({ type: 'error', text: '✗ Mật khẩu mới phải khác mật khẩu hiện tại!' })
-      setLoading(false)
+    if (currentPassword === newPassword) {
+      showNotification('error', '✗ Mật khẩu mới phải khác mật khẩu hiện tại!', 4000)
       return
     }
 
     try {
-      await authService.changePassword(formData.currentPassword, formData.newPassword)
-      
-      setFormData(prev => ({
-        ...prev,
+      setLoading(true)
+      await authService.changePassword(currentPassword, newPassword)
+      setPasswordForm({
         currentPassword: '',
         newPassword: '',
         confirmPassword: ''
-      }))
-      setMessage({ type: 'success', text: '✓ Đổi mật khẩu thành công!' })
-      
-      // Auto hide success message after 3 seconds
-      setTimeout(() => {
-        setMessage({ type: '', text: '' })
-      }, 3000)
+      })
+      showNotification('success', '✓ Đổi mật khẩu thành công!')
     } catch (error) {
       console.error('Error changing password:', error)
-      const errorMessage = error.response?.data?.message || error.message || 'Có lỗi xảy ra. Vui lòng thử lại!'
-      setMessage({ type: 'error', text: '✗ ' + errorMessage })
+      const errorText = error.response?.data?.message || error.message || 'Có lỗi xảy ra. Vui lòng thử lại!'
+      showNotification('error', '✗ ' + errorText, 5000)
     } finally {
       setLoading(false)
     }
@@ -211,11 +188,18 @@ const Profile = () => {
 
   const handleLogout = () => {
     if (window.confirm('Bạn có chắc chắn muốn đăng xuất khỏi tài khoản MealMind?')) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('authToken')
-      localStorage.removeItem('user')
+      authService.logout()
       navigate('/login')
     }
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setProfileForm({
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || ''
+    })
   }
 
   if (checkingAuth) {
@@ -283,7 +267,7 @@ const Profile = () => {
 
   return (
     <div className="profile-container">
-      <div className="profile-header">
+      <header className="profile-header">
         <div className="profile-header-info">
           <h1>Thông tin cá nhân</h1>
           <p>Quản lý thông tin tài khoản và bảo mật của bạn</p>
@@ -297,10 +281,10 @@ const Profile = () => {
           <span className="material-symbols-outlined">logout</span>
           <span>Đăng xuất</span>
         </button>
-      </div>
+      </header>
 
       {message.text && (
-        <div className={`message-banner ${message.type}`}>
+        <div className={`message-banner ${message.type}`} role="status">
           <span className="message-icon">
             {message.type === 'success' ? '✓' : '⚠'}
           </span>
@@ -315,6 +299,7 @@ const Profile = () => {
             <h2>Thông tin tài khoản</h2>
             {!isEditing && (
               <button 
+                type="button"
                 className="btn-edit"
                 onClick={() => setIsEditing(true)}
               >
@@ -346,41 +331,47 @@ const Profile = () => {
             </div>
 
             <div className="form-group">
-              <label>Họ và tên</label>
+              <label htmlFor="profile-name">Họ và tên</label>
               <input
                 type="text"
+                id="profile-name"
                 name="name"
-                value={formData.name}
-                onChange={handleChange}
+                value={profileForm.name}
+                onChange={handleProfileChange}
                 disabled={!isEditing}
                 placeholder="Nhập họ và tên"
+                autoComplete="name"
                 required
                 minLength={2}
               />
             </div>
 
             <div className="form-group">
-              <label>Email</label>
+              <label htmlFor="profile-email">Email</label>
               <input
                 type="email"
+                id="profile-email"
                 name="email"
-                value={formData.email}
-                onChange={handleChange}
+                value={profileForm.email}
+                onChange={handleProfileChange}
                 disabled={!isEditing}
                 placeholder="Nhập email"
+                autoComplete="email"
                 required
               />
             </div>
 
             <div className="form-group">
-              <label>Số điện thoại</label>
+              <label htmlFor="profile-phone">Số điện thoại</label>
               <input
                 type="tel"
+                id="profile-phone"
                 name="phone"
-                value={formData.phone}
-                onChange={handleChange}
+                value={profileForm.phone}
+                onChange={handleProfileChange}
                 disabled={!isEditing}
                 placeholder="Nhập số điện thoại (10-11 số)"
+                autoComplete="tel"
                 pattern="[0-9]{10,11}"
               />
             </div>
@@ -390,15 +381,7 @@ const Profile = () => {
                 <button 
                   type="button" 
                   className="btn-cancel"
-                  onClick={() => {
-                    setIsEditing(false)
-                    setFormData({
-                      ...formData,
-                      name: user.name || '',
-                      email: user.email || '',
-                      phone: user.phone || ''
-                    })
-                  }}
+                  onClick={handleCancelEdit}
                   disabled={loading}
                 >
                   Hủy
@@ -423,20 +406,22 @@ const Profile = () => {
 
           <form onSubmit={handleChangePassword}>
             <div className="form-group">
-              <label>Mật khẩu hiện tại</label>
+              <label htmlFor="currentPassword">Mật khẩu hiện tại</label>
               <div className="password-input-wrapper">
                 <input
                   type={showPassword.current ? 'text' : 'password'}
+                  id="currentPassword"
                   name="currentPassword"
-                  value={formData.currentPassword}
-                  onChange={handleChange}
+                  value={passwordForm.currentPassword}
+                  onChange={handlePasswordChange}
                   placeholder="Nhập mật khẩu hiện tại"
+                  autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
                   className="password-toggle-btn"
-                  onClick={() => setShowPassword(p => ({ ...p, current: !p.current }))}
+                  onClick={() => setShowPassword(prev => ({ ...prev, current: !prev.current }))}
                   tabIndex="-1"
                   aria-label={showPassword.current ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
@@ -448,21 +433,23 @@ const Profile = () => {
             </div>
 
             <div className="form-group">
-              <label>Mật khẩu mới</label>
+              <label htmlFor="newPassword">Mật khẩu mới</label>
               <div className="password-input-wrapper">
                 <input
                   type={showPassword.new ? 'text' : 'password'}
+                  id="newPassword"
                   name="newPassword"
-                  value={formData.newPassword}
-                  onChange={handleChange}
+                  value={passwordForm.newPassword}
+                  onChange={handlePasswordChange}
                   placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
+                  autoComplete="new-password"
                   required
                   minLength={8}
                 />
                 <button
                   type="button"
                   className="password-toggle-btn"
-                  onClick={() => setShowPassword(p => ({ ...p, new: !p.new }))}
+                  onClick={() => setShowPassword(prev => ({ ...prev, new: !prev.new }))}
                   tabIndex="-1"
                   aria-label={showPassword.new ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
@@ -477,21 +464,23 @@ const Profile = () => {
             </div>
 
             <div className="form-group">
-              <label>Xác nhận mật khẩu mới</label>
+              <label htmlFor="confirmPassword">Xác nhận mật khẩu mới</label>
               <div className="password-input-wrapper">
                 <input
                   type={showPassword.confirm ? 'text' : 'password'}
+                  id="confirmPassword"
                   name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
+                  value={passwordForm.confirmPassword}
+                  onChange={handlePasswordChange}
                   placeholder="Nhập lại mật khẩu mới"
+                  autoComplete="new-password"
                   required
                   minLength={8}
                 />
                 <button
                   type="button"
                   className="password-toggle-btn"
-                  onClick={() => setShowPassword(p => ({ ...p, confirm: !p.confirm }))}
+                  onClick={() => setShowPassword(prev => ({ ...prev, confirm: !prev.confirm }))}
                   tabIndex="-1"
                   aria-label={showPassword.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
@@ -506,7 +495,7 @@ const Profile = () => {
               <button 
                 type="submit" 
                 className="btn-save"
-                disabled={loading || !formData.currentPassword || !formData.newPassword}
+                disabled={loading || !passwordForm.currentPassword || !passwordForm.newPassword}
               >
                 {loading ? 'Đang xử lý...' : 'Đổi mật khẩu'}
               </button>

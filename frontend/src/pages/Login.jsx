@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { authService } from '../services/authService'
+import { isValidEmail, isStrongPassword, PASSWORD_REQUIREMENTS_MESSAGE } from '../utils/validation'
 import './Login.css'
 
 const Login = () => {
@@ -28,18 +29,20 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
+    if (!isValidEmail(formData.email)) {
+      alert('Định dạng email không hợp lệ!')
+      return
+    }
+
     if (!isLogin && formData.password !== formData.confirmPassword) {
       alert('Mật khẩu không khớp!')
       return
     }
 
     // Validate password strength for registration
-    if (!isLogin) {
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
-      if (!passwordRegex.test(formData.password)) {
-        alert('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)')
-        return
-      }
+    if (!isLogin && !isStrongPassword(formData.password)) {
+      alert(PASSWORD_REQUIREMENTS_MESSAGE)
+      return
     }
 
     if (!isLogin && !formData.agreeTerms) {

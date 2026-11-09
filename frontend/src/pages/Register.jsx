@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { authService } from '../services/authService'
+import { isValidEmail, isStrongPassword, PASSWORD_REQUIREMENTS_MESSAGE } from '../utils/validation'
 import './Login.css'
 
 const Register = () => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -14,53 +16,81 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const navigate = useNavigate()
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    })
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+    if (error) setError('')
+  }
+
+  const handleBack = () => {
+    if (window.history.state && window.history.state.idx > 0) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
+    const name = formData.name.trim()
+    const email = formData.email.trim()
+    const password = formData.password
+    const confirmPassword = formData.confirmPassword
+
     // Validation
-    if (!formData.name || !formData.email || !formData.password) {
-      setError('Vui lòng điền đầy đủ thông tin')
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Vui lòng điền đầy đủ tất cả thông tin')
       return
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (name.length < 2) {
+      setError('Họ và tên phải có ít nhất 2 ký tự')
+      return
+    }
+
+    if (!isValidEmail(email)) {
+      setError('Định dạng email không hợp lệ')
+      return
+    }
+
+    if (!isStrongPassword(password)) {
+      setError(PASSWORD_REQUIREMENTS_MESSAGE)
+      return
+    }
+
+    if (password !== confirmPassword) {
       setError('Mật khẩu xác nhận không khớp')
-      return
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
-    if (!passwordRegex.test(formData.password)) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)')
       return
     }
 
     try {
       setLoading(true)
       const response = await authService.register({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password
+        name,
+        email,
+        password
       })
 
-      if (response.token) {
+      if (response?.token) {
         localStorage.setItem('token', response.token)
         localStorage.setItem('authToken', response.token)
         localStorage.setItem('user', JSON.stringify(response.user))
         navigate('/')
+      } else {
+        // Fallback login if token not returned directly in register response
+        await authService.login(email, password)
+        navigate('/')
       }
     } catch (err) {
       console.error('Registration error:', err)
-      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.')
+      const errorMessage = err.response?.data?.message || err.message || 'Đăng ký thất bại. Vui lòng thử lại.'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -70,17 +100,11 @@ const Register = () => {
     <div className="login-container register-page">
       <div className="login-left">
         <div className="login-content">
-          <div className="login-header">
+          <header className="login-header">
             <button 
               type="button" 
               className="login-back-btn" 
-              onClick={() => {
-                if (window.history.state && window.history.state.idx > 0) {
-                  navigate(-1)
-                } else {
-                  navigate('/')
-                }
-              }}
+              onClick={handleBack}
               aria-label="Quay lại"
             >
               <span className="material-symbols-outlined">arrow_back</span>
@@ -95,16 +119,16 @@ const Register = () => {
             <Link to="/" className="close-btn" aria-label="Đóng" title="Về trang chủ">
               <span className="material-symbols-outlined">close</span>
             </Link>
-          </div>
+          </header>
 
-          <div className="login-form-section">
+          <main className="login-form-section">
             <h1>Tạo tài khoản mới</h1>
             <p className="login-subtitle">
-              Tham gia cộng đồng MealMind để khám phá thế giới ẩm thực
+              Tham gia cộng đồng MealMind để khám phá thế giới ẩm thực thông minh
             </p>
 
             {error && (
-              <div className="error-message">
+              <div className="error-message" role="alert">
                 {error}
               </div>
             )}
@@ -119,6 +143,7 @@ const Register = () => {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Nhập họ và tên của bạn"
+                  autoComplete="name"
                   required
                 />
               </div>
@@ -132,6 +157,7 @@ const Register = () => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Nhập địa chỉ email"
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -146,12 +172,13 @@ const Register = () => {
                     value={formData.password}
                     onChange={handleChange}
                     placeholder="Nhập mật khẩu (tối thiểu 8 ký tự)"
+                    autoComplete="new-password"
                     required
                   />
                   <button
                     type="button"
                     className="password-toggle-btn"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowPassword(prev => !prev)}
                     tabIndex="-1"
                     aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                   >
@@ -175,12 +202,13 @@ const Register = () => {
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     placeholder="Nhập lại mật khẩu"
+                    autoComplete="new-password"
                     required
                   />
                   <button
                     type="button"
                     className="password-toggle-btn"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    onClick={() => setShowConfirmPassword(prev => !prev)}
                     tabIndex="-1"
                     aria-label={showConfirmPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                   >
@@ -205,11 +233,11 @@ const Register = () => {
             </div>
 
             <div className="social-login">
-              <button className="social-btn google">
+              <button type="button" className="social-btn google">
                 <span className="social-icon">🌐</span>
                 Đăng ký với Google
               </button>
-              <button className="social-btn apple">
+              <button type="button" className="social-btn apple">
                 <span className="social-icon">🍎</span>
                 Đăng ký với Apple
               </button>
@@ -218,7 +246,7 @@ const Register = () => {
             <p className="login-footer">
               Đã có tài khoản? <Link to="/login">Đăng nhập ngay</Link>
             </p>
-          </div>
+          </main>
         </div>
       </div>
 
