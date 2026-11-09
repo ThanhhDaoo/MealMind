@@ -16,6 +16,11 @@ const Profile = () => {
     newPassword: '',
     confirmPassword: ''
   })
+  const [showPassword, setShowPassword] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  })
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
 
@@ -131,8 +136,12 @@ const Profile = () => {
       return
     }
 
-    if (formData.newPassword.length < 6) {
-      setMessage({ type: 'error', text: '✗ Mật khẩu mới phải có ít nhất 6 ký tự!' })
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/
+    if (!passwordRegex.test(formData.newPassword)) {
+      setMessage({
+        type: 'error',
+        text: '✗ Mật khẩu mới phải có ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt (!@#$%^&*...)'
+      })
       setLoading(false)
       return
     }
@@ -384,40 +393,82 @@ const Profile = () => {
           <form onSubmit={handleChangePassword}>
             <div className="form-group">
               <label>Mật khẩu hiện tại</label>
-              <input
-                type="password"
-                name="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleChange}
-                placeholder="Nhập mật khẩu hiện tại"
-                required
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword.current ? 'text' : 'password'}
+                  name="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleChange}
+                  placeholder="Nhập mật khẩu hiện tại"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(p => ({ ...p, current: !p.current }))}
+                  tabIndex="-1"
+                  aria-label={showPassword.current ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword.current ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="form-group">
               <label>Mật khẩu mới</label>
-              <input
-                type="password"
-                name="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
-                required
-                minLength={6}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword.new ? 'text' : 'password'}
+                  name="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleChange}
+                  placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(p => ({ ...p, new: !p.new }))}
+                  tabIndex="-1"
+                  aria-label={showPassword.new ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword.new ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
+              <small className="form-helper-text">
+                Tối thiểu 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt
+              </small>
             </div>
 
             <div className="form-group">
               <label>Xác nhận mật khẩu mới</label>
-              <input
-                type="password"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Nhập lại mật khẩu mới"
-                required
-                minLength={6}
-              />
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword.confirm ? 'text' : 'password'}
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Nhập lại mật khẩu mới"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  className="password-toggle-btn"
+                  onClick={() => setShowPassword(p => ({ ...p, confirm: !p.confirm }))}
+                  tabIndex="-1"
+                  aria-label={showPassword.confirm ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                >
+                  <span className="material-symbols-outlined">
+                    {showPassword.confirm ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
             </div>
 
             <div className="form-actions">
